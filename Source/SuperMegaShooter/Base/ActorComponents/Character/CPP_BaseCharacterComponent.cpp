@@ -2,7 +2,7 @@
 
 
 #include "Base/ActorComponents/Character/CPP_BaseCharacterComponent.h"
-#include "Base/CPP_BaseCharacter.h"
+#include "Base/Character/CPP_BaseCharacter.h"
 
 UCPP_BaseCharacterComponent::UCPP_BaseCharacterComponent()
 {

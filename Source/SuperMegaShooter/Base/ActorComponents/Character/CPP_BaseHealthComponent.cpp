@@ -2,7 +2,7 @@
 
 
 #include "Base/ActorComponents/Character/CPP_BaseHealthComponent.h"
-#include "Base/CPP_BaseCharacter.h"
+#include "Base/Character/CPP_BaseCharacter.h"
 
 #include "Net/UnrealNetwork.h"
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Base/CPP_BaseCharacter.h"
+#include "Base/Character/CPP_BaseCharacter.h"
 #include "CPP_PlayerCharacter.generated.h"
 
 UCLASS()
@@ -29,4 +29,14 @@ protected:
 	virtual void StartJump();
 
 	virtual void StopJump();
+
+	UFUNCTION(Server, Reliable)
+	void ServerUseWeapon();
+
+	virtual void ServerUseWeapon_Implementation();
+
+	UFUNCTION(Server, Reliable)
+	void ServerStopUsingWeapon();
+
+	virtual void ServerStopUsingWeapon_Implementation();
 };

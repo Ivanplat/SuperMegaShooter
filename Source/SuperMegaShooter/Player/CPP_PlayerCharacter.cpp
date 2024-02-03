@@ -3,14 +3,19 @@
 
 #include "Player/CPP_PlayerCharacter.h"
 #include "Player/ActorComponents/CPP_PlayerHealthComponent.h"
+#include "Player/ActorComponents/CPP_PlayerInventoryComponent.h"
+#include "Actors/Weapons/CPP_Weapon.h"
 
 ACPP_PlayerCharacter::ACPP_PlayerCharacter()
 {
 	HealthComponent = CreateDefaultSubobject<UCPP_PlayerHealthComponent>(TEXT("HealthComponent"));
+	InventoryComponent = CreateDefaultSubobject<UCPP_PlayerInventoryComponent>(TEXT("InventoryComponent"));
 
 	check(HealthComponent);
+	check(InventoryComponent);
 
 	HealthComponent->SetIsReplicated(true);
+	InventoryComponent->SetIsReplicated(true);
 }
 
 void ACPP_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -23,6 +28,10 @@ void ACPP_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAxis(FName("Turn"), this, &ACPP_PlayerCharacter::Turn);
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Pressed, this, &ACPP_PlayerCharacter::StartJump);
 	PlayerInputComponent->BindAction(FName("Jump"), IE_Released, this, &ACPP_PlayerCharacter::StopJump);
+	PlayerInputComponent->BindAction(FName("Interact"), IE_Pressed, this, &ACPP_PlayerCharacter::ServerInteract);
+	PlayerInputComponent->BindAction(FName("DropWeapon"), IE_Pressed, this, &ACPP_PlayerCharacter::ServerDropWeapon);
+	PlayerInputComponent->BindAction(FName("UseWeapon"), IE_Pressed, this, &ACPP_PlayerCharacter::ServerUseWeapon);
+	PlayerInputComponent->BindAction(FName("UseWeapon"), IE_Released, this, &ACPP_PlayerCharacter::ServerStopUsingWeapon);
 }
 
 void ACPP_PlayerCharacter::MoveForward(float Axis)
@@ -65,4 +74,20 @@ void ACPP_PlayerCharacter::StartJump()
 void ACPP_PlayerCharacter::StopJump()
 {
 	StopJumping();
+}
+
+void ACPP_PlayerCharacter::ServerUseWeapon_Implementation()
+{
+	if (ACPP_Weapon* selectedWeapon = GetInventoryComponent()->GetSelectedWeapon())
+	{
+		selectedWeapon->UseWeapon();
+	}
+}
+
+void ACPP_PlayerCharacter::ServerStopUsingWeapon_Implementation()
+{
+	if (ACPP_Weapon* selectedWeapon = GetInventoryComponent()->GetSelectedWeapon())
+	{
+		selectedWeapon->StopUsingWeapon();
+	}
 }
