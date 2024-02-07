@@ -21,16 +21,28 @@ public:
 
 	virtual void StopUsingWeapon() override;
 
+	virtual void Reload();
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Fire Weapon | Settings")
+	virtual inline bool IsReloading() const;
+
 protected:
 	virtual bool TryUseWeapon() override;
 
-	virtual bool AbleToUseWeapon() override;
+	virtual bool IsAbleToUseWeapon() const override;
 
 	virtual void Fire();
 
 	virtual void DecreaseAmmo();
 
 	virtual void PlayWeaponAnimationMulticast_Implementation(EWeaponAnimationType AnimationType) override;
+
+	virtual bool IsAbleToReload() const;
+
+	UFUNCTION()
+	virtual void EndReloading();
+
+	virtual bool IsNeededToReload() const;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings", Replicated)
@@ -45,11 +57,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings", Replicated)
 	int32 MaxAmmoInBack;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings", Replicated)
+	bool bReloading = false;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings")
 	bool bAbleToAutoFire = false;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings")
 	float FireDelay = 0.3f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings")
+	float ReloadingTime = 1.0f;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings")
 	FTimerHandle AutoFireTimeHandler;

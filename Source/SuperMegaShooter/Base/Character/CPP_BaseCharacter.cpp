@@ -7,6 +7,8 @@
 #include "DrawDebugHelpers.h"
 #include "Base/ActorComponents/Character/CPP_BaseInventoryComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "CharacterWeaponAnimationInfo.h"
+#include "Actors/Weapons/FireWeapons/CPP_FireWeapon.h"
 
 ACPP_BaseCharacter::ACPP_BaseCharacter()
 {
@@ -26,6 +28,13 @@ ACPP_BaseCharacter::ACPP_BaseCharacter()
 	GetMesh()->bOwnerNoSee = true;
 	FPMesh->bOnlyOwnerSee = true;
 	FPMesh->CastShadow = false;
+
+	static ConstructorHelpers::FObjectFinder<UDataTable> characterWeaponAnimsHelper(TEXT("/Script/Engine.DataTable'/Game/Blueprints/Character/DT_CharacterWeaponsAnimations.DT_CharacterWeaponsAnimations'"));
+
+	if (characterWeaponAnimsHelper.Succeeded())
+	{
+		CharacterWeaponAnimationsDataTable = characterWeaponAnimsHelper.Object;
+	}
 }
 
 void ACPP_BaseCharacter::BeginPlay()
@@ -47,6 +56,78 @@ void ACPP_BaseCharacter::ServerDropWeapon_Implementation()
 {
 	UCPP_BaseInventoryComponent* inventory = GetInventoryComponent();
 	inventory->DropWeapon(inventory->GetSelectedWeapon());
+}
+
+void ACPP_BaseCharacter::MulticastPlayCharaterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float NeededTime)
+{
+	if (!CharacterWeaponAnimationsDataTable) return;
+
+	FString context;
+	FName rowName;
+
+	FCharacterWeaponAnimationInfoMap::GetRowNameByWeaponId(rowName, WeaponId);
+
+	if (
+		FCharacterWeaponAnimationInfoMap* row = CharacterWeaponAnimationsDataTable->
+		FindRow<FCharacterWeaponAnimationInfoMap>(rowName, context)
+		)
+	{
+		FName animationTypeName;
+
+		FCharacterWeaponAnimationInfo::GetAnimationNameByType(animationTypeName, AnimationType);
+
+		if (UAnimMontage** montage = row->CharacterWeaponMontages.CharacterWeaponMontage.Find(animationTypeName))
+		{
+			if (UAnimInstance* animInstance = GetVisibleMesh()->GetAnimInstance())
+			{
+				float playRate = 1.0f;
+
+				if (NeededTime > 0.0f)
+				{
+					float timeEx = (*montage)->GetPlayLength();
+					playRate = NeededTime / timeEx;
+				}
+
+				animInstance->Montage_Play(*montage, playRate);
+			}
+		}
+	}
+}
+
+void ACPP_BaseCharacter::MulticastStopPlayCharacterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float BlendTime)
+{
+	if (!CharacterWeaponAnimationsDataTable) return;
+
+	FString context;
+	FName rowName;
+
+	FCharacterWeaponAnimationInfoMap::GetRowNameByWeaponId(rowName, WeaponId);
+
+	if (
+		FCharacterWeaponAnimationInfoMap* row = CharacterWeaponAnimationsDataTable->
+		FindRow<FCharacterWeaponAnimationInfoMap>(rowName, context)
+		)
+	{
+		FName animationTypeName;
+
+		FCharacterWeaponAnimationInfo::GetAnimationNameByType(animationTypeName, AnimationType);
+
+		if (UAnimMontage** montage = row->CharacterWeaponMontages.CharacterWeaponMontage.Find(animationTypeName))
+		{
+			if (UAnimInstance* animInstance = GetVisibleMesh()->GetAnimInstance())
+			{
+				animInstance->Montage_Stop(BlendTime, *montage);
+			}
+		}
+	}
+}
+
+void ACPP_BaseCharacter::ServerReloadWeapon_Implementation()
+{
+	if (ACPP_FireWeapon* fireWeapon = Cast<ACPP_FireWeapon>(GetInventoryComponent()->GetSelectedWeapon()))
+	{
+		fireWeapon->Reload();
+	}
 }
 
 void ACPP_BaseCharacter::Tick(float DeltaTime)

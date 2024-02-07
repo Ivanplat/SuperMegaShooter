@@ -97,6 +97,7 @@ void ACPP_Weapon::OnWeaponAttachTypeChanged_Implementation()
 void ACPP_Weapon::StopUsingWeapon()
 {
 	bWeaponInUse = false;
+	WeaponOwner->MulticastStopPlayCharacterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Using, 0.75f);
 }
 
 inline EWeaponAttachType ACPP_Weapon::GetWeaponAttachType() const
@@ -112,4 +113,9 @@ inline ACPP_BaseCharacter* ACPP_Weapon::GetWeaponOwner() const
 inline bool ACPP_Weapon::GetWeaponInUse() const
 {
 	return bWeaponInUse;
+}
+
+inline EWeaponId ACPP_Weapon::GetWeaponId() const
+{
+	return WeaponId;
 }

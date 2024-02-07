@@ -16,6 +16,7 @@ void ACPP_FireWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutL
 	DOREPLIFETIME(ACPP_FireWeapon, CurrentAmmoInBack);
 	DOREPLIFETIME(ACPP_FireWeapon, MaxCurrentAmmo);
 	DOREPLIFETIME(ACPP_FireWeapon, MaxAmmoInBack);
+	DOREPLIFETIME(ACPP_FireWeapon, bReloading);
 }
 
 void ACPP_FireWeapon::UseWeapon()
@@ -32,7 +33,7 @@ void ACPP_FireWeapon::StopUsingWeapon()
 
 bool ACPP_FireWeapon::TryUseWeapon()
 {
-	if (AbleToUseWeapon())
+	if (IsAbleToUseWeapon())
 	{
 		bWeaponInUse = true;
 		Fire();
@@ -41,9 +42,9 @@ bool ACPP_FireWeapon::TryUseWeapon()
 	return false;
 }
 
-bool ACPP_FireWeapon::AbleToUseWeapon()
+bool ACPP_FireWeapon::IsAbleToUseWeapon() const
 {
-	return !bWeaponInUse && CurrentAmmo > 0;
+	return !bWeaponInUse && CurrentAmmo > 0 && !bReloading;
 }
 
 void ACPP_FireWeapon::Fire()
@@ -81,6 +82,9 @@ void ACPP_FireWeapon::Fire()
 		}
 	}
 
+	PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Using);
+	WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Using, FireDelay);
+
 	DecreaseAmmo();
 
 	if (bAbleToAutoFire && CurrentAmmo > 0)
@@ -90,6 +94,13 @@ void ACPP_FireWeapon::Fire()
 		td.BindUObject(this, &ACPP_FireWeapon::Fire);
 
 		GetWorld()->GetTimerManager().SetTimer(AutoFireTimeHandler, td, FireDelay, false, FireDelay);
+	}
+
+	if (IsNeededToReload())
+	{
+		StopUsingWeapon();
+
+		Reload();
 	}
 }
 
@@ -119,4 +130,55 @@ void ACPP_FireWeapon::PlayWeaponAnimationMulticast_Implementation(EWeaponAnimati
 	{
 		GetSkeletalMeshComponent()->PlayAnimation(animation, false);
 	}
+}
+
+bool ACPP_FireWeapon::IsAbleToReload() const
+{
+	return CurrentAmmo < MaxCurrentAmmo && CurrentAmmoInBack > 0 && !bReloading && !bWeaponInUse;
+}
+
+void ACPP_FireWeapon::Reload()
+{
+	if (IsAbleToReload())
+	{
+		bReloading = true;
+
+		FTimerHandle th;
+		FTimerDelegate td;
+
+		td.BindUFunction(this, FName("EndReloading"));
+
+		GetWorld()->GetTimerManager().SetTimer(th, td, ReloadingTime, false, ReloadingTime);
+
+		PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Reloading);
+		WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Reloading, ReloadingTime);
+	}
+}
+
+inline bool ACPP_FireWeapon::IsReloading() const
+{
+	return bReloading;
+}
+
+void ACPP_FireWeapon::EndReloading()
+{
+	const int32 ammoNeededToReload = MaxCurrentAmmo - CurrentAmmo;
+	
+	if (ammoNeededToReload <= CurrentAmmoInBack)
+	{
+		CurrentAmmo += ammoNeededToReload;
+		CurrentAmmoInBack -= ammoNeededToReload;
+	}
+	else
+	{
+		CurrentAmmo += CurrentAmmoInBack;
+		CurrentAmmoInBack = 0;
+	}
+
+	bReloading = false;
+}
+
+bool ACPP_FireWeapon::IsNeededToReload() const
+{
+	return CurrentAmmo == 0;
 }

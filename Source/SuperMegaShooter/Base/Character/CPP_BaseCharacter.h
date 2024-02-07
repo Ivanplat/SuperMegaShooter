@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Actors/Weapons/WeaponSettings.h"
 #include "CPP_BaseCharacter.generated.h"
 
 UCLASS()
@@ -25,7 +26,16 @@ protected:
 	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Base Character")
 	void ServerDropWeapon();
 
+	UFUNCTION(BlueprintCallable, Server, Reliable, Category = "Base Character")
+	void ServerReloadWeapon();
+
 	virtual void ServerDropWeapon_Implementation();
+
+	virtual void  MulticastPlayCharaterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float NeededTime = -1.0f);
+
+	virtual void MulticastStopPlayCharacterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float BlendTime = 1.0f);
+
+	virtual void ServerReloadWeapon_Implementation();
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -44,6 +54,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Character | Camera")
 	virtual inline bool TryGetCharacterLookingVector(FVector& OutVector) const;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastPlayCharaterWeaponMontage(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float NeededTime = -1.0f);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastStopPlayCharacterWeaponMontage(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float BlendTime = 1.0f);
 
 	template<class T>
 	inline T* GetHealthComponent() const
@@ -70,4 +86,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character Components")
 	class UCPP_BaseInventoryComponent* InventoryComponent;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
+	UDataTable* CharacterWeaponAnimationsDataTable;
 };

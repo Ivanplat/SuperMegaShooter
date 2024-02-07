@@ -45,6 +45,9 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Weapon | Settings")
 	virtual inline bool GetWeaponInUse() const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Weapon | Settings")
+	virtual inline EWeaponId GetWeaponId() const;
+
 	DECLARE_GET_WEAPON_COMPONENT_METHODE();
 
 protected:
@@ -54,7 +57,7 @@ protected:
 
 	virtual bool TryUseWeapon() { return true; }
 
-	virtual bool AbleToUseWeapon() { return true; }
+	virtual bool IsAbleToUseWeapon() const { return true; }
 
 	UFUNCTION(NetMulticast, Reliable)
 	void PlayWeaponAnimationMulticast(EWeaponAnimationType AnimationType);
@@ -89,6 +92,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
 	TSubclassOf<UDamageType> WeaponDamageType;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
+	EWeaponId WeaponId;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
 	UAnimationAsset* IdleAnimation;

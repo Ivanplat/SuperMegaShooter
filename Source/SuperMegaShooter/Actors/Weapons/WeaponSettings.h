@@ -65,3 +65,12 @@ enum class EWeaponAnimationType : uint8
 	WAnT_Reloading  UMETA(DisplayName = "Reloading"),
 	WAnT_Inspection UMETA(DisplayName = "Inspection")
 };
+
+UENUM(BlueprintType)
+enum class EWeaponId : uint8
+{
+	WId_Ak	  UMETA(DisplayName = "Ak"),
+	WId_Glock UMETA(DisplayName = "Glock"),
+	WId_Knife UMETA(DisplayName = "Knife"),
+	WId_Unset UMETA(DisplayName = "Unset")
+};

@@ -32,6 +32,7 @@ void ACPP_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction(FName("DropWeapon"), IE_Pressed, this, &ACPP_PlayerCharacter::ServerDropWeapon);
 	PlayerInputComponent->BindAction(FName("UseWeapon"), IE_Pressed, this, &ACPP_PlayerCharacter::ServerUseWeapon);
 	PlayerInputComponent->BindAction(FName("UseWeapon"), IE_Released, this, &ACPP_PlayerCharacter::ServerStopUsingWeapon);
+	PlayerInputComponent->BindAction(FName("Reload"), IE_Pressed, this, &ACPP_PlayerCharacter::ServerReloadWeapon);
 }
 
 void ACPP_PlayerCharacter::MoveForward(float Axis)
