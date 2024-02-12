@@ -15,6 +15,9 @@ class SUPERMEGASHOOTER_API ACPP_FireWeapon : public ACPP_Weapon
 	GENERATED_BODY()
 
 public:
+	ACPP_FireWeapon();
+
+public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	virtual void UseWeapon() override;
@@ -25,6 +28,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Fire Weapon | Settings")
 	virtual inline bool IsReloading() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Fire Weapon | Settings")
+	virtual inline int32 GetCurrentAmmo() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Fire Weapon | Settings")
+	virtual inline int32 GetCurrentAmmoInBack() const;
 
 protected:
 	virtual bool TryUseWeapon() override;
@@ -43,6 +52,10 @@ protected:
 	virtual void EndReloading();
 
 	virtual bool IsNeededToReload() const;
+
+	virtual void PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType) override;
+
+	virtual void PlayUsingWeaponEffects_Implementation() override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings", Replicated)
@@ -74,4 +87,10 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
 	UAnimationAsset* ReloadingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
+	USoundBase* ReloadingSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon | Components")
+	USceneComponent* GunFirePoint;
 };

@@ -23,5 +23,6 @@ void FCharacterWeaponAnimationInfo::GetAnimationNameByType(FName& OutAnimationNa
 		case EWeaponAnimationType::WAnT_Using:		OutAnimationName = "Using";		 break;
 		case EWeaponAnimationType::WAnT_Reloading:  OutAnimationName = "Reloading";  break;
 		case EWeaponAnimationType::WAnT_Inspection: OutAnimationName = "Inspection"; break;
+		case EWeaponAnimationType::WAnT_Preparing:  OutAnimationName = "Preparing";  break;
 	}
 }

@@ -30,6 +30,10 @@ protected:
 
 	virtual void StopJump();
 
+	virtual void ScrollUp();
+
+	virtual void ScrollDown();
+
 	UFUNCTION(Server, Reliable)
 	void ServerUseWeapon();
 
@@ -39,4 +43,7 @@ protected:
 	void ServerStopUsingWeapon();
 
 	virtual void ServerStopUsingWeapon_Implementation();
+
+	virtual void PossessedBy(AController* NewController) override;
+
 };

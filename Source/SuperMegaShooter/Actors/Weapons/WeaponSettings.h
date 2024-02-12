@@ -47,6 +47,9 @@ struct SUPERMEGASHOOTER_API FWeaponInfo
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Weapon Info")
 	EWeaponType WeaponType;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Weapon Info")
+	UTexture2D* WeaponUITexture = nullptr;
 };
 
 UENUM(BlueprintType)
@@ -63,7 +66,8 @@ enum class EWeaponAnimationType : uint8
 	WAnT_Idle		UMETA(DisplayName = "Idle"),
 	WAnT_Using		UMETA(DisplayName = "Using"),
 	WAnT_Reloading  UMETA(DisplayName = "Reloading"),
-	WAnT_Inspection UMETA(DisplayName = "Inspection")
+	WAnT_Inspection UMETA(DisplayName = "Inspection"),
+	WAnT_Preparing  UMETA(DisplayName = "Preparing")
 };
 
 UENUM(BlueprintType)
@@ -73,4 +77,12 @@ enum class EWeaponId : uint8
 	WId_Glock UMETA(DisplayName = "Glock"),
 	WId_Knife UMETA(DisplayName = "Knife"),
 	WId_Unset UMETA(DisplayName = "Unset")
+};
+
+UENUM(BlueprintType)
+enum class EWeaponSoundType : uint8
+{
+	WST_Using      UMETA(DisplayName = "Using"),
+	WST_Preparing  UMETA(DisplayName = "Preparing"),
+	WST_Reloading  UMETA(DisplayName = "Reloading")
 };

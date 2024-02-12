@@ -33,9 +33,17 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Component | Weapons")
 	virtual inline class ACPP_Weapon* GetMeleeWeapon() const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Inventory Component | Weapons")
+	virtual inline class ACPP_Weapon* GetWeaponByWeaponType(EWeaponType WeaponType) const;
+
 	virtual void SpawnInitialWeaponsSet();
 
+	virtual void SelectWeaponByWeaponType(EWeaponType WeaponType);
+
 protected:
+
+	UFUNCTION(Server, Reliable)
+	void ServerSelectWeaponByWeaponType(EWeaponType WeaponType);
 
 	virtual bool TryUpdateSelectedWeapon();
 
@@ -44,6 +52,10 @@ protected:
 	virtual bool TryUpdateWeapon(class ACPP_Weapon** WeaponToUpdate, class ACPP_Weapon* NewWeapon);
 
 	virtual void SpawnWeaponBySoftPtr(TSoftClassPtr<class ACPP_Weapon> WeaponClass, class ACPP_Weapon** WeaponPtr);
+
+	virtual void UnselectWeapon();
+	
+	virtual void ServerSelectWeaponByWeaponType_Implementation(EWeaponType WeaponType);
 
 	virtual void BeginPlay() override;
 

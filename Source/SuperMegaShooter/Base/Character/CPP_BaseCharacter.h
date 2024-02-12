@@ -31,11 +31,23 @@ protected:
 
 	virtual void ServerDropWeapon_Implementation();
 
-	virtual void  MulticastPlayCharaterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float NeededTime = -1.0f);
+	virtual void MulticastPlayCharaterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float NeededTime = -1.0f);
 
 	virtual void MulticastStopPlayCharacterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float BlendTime = 1.0f);
 
 	virtual void ServerReloadWeapon_Implementation();
+
+	virtual void StartCrouch();
+
+	virtual void StopCrouching();
+
+	virtual void SelectMainWeapon();
+
+	virtual void SelectSecondaryWeapon();
+
+	virtual void SelectMeleeWeapon();
+
+	inline void CalculateLookingVerticalAngle();
 
 public:	
 	virtual void Tick(float DeltaTime) override;
@@ -51,6 +63,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character Components")
 	virtual inline class UCPP_BaseInventoryComponent* GetInventoryComponent() const;
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character Components")
+	virtual inline class UCameraComponent* GetFPCamera() const;
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Character | Camera")
 	virtual inline bool TryGetCharacterLookingVector(FVector& OutVector) const;
@@ -73,6 +88,7 @@ public:
 		return Cast<T>(GetInventoryComponent());
 	}
 	
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Character Components")
@@ -89,4 +105,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Character")
 	UDataTable* CharacterWeaponAnimationsDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Replicated, Category = "Character")
+	double LookingVerticalAngle;
 };

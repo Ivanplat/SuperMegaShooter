@@ -151,6 +151,17 @@ inline ACPP_Weapon* UCPP_BaseInventoryComponent::GetMeleeWeapon() const
 	return MeleeWeapon;
 }
 
+inline ACPP_Weapon* UCPP_BaseInventoryComponent::GetWeaponByWeaponType(EWeaponType WeaponType) const
+{
+	switch (WeaponType)
+	{
+	case EWeaponType::WT_MainWeapon:	  return GetMainWeapon();	   break;
+	case EWeaponType::WT_SecondaryWeapon: return GetSecondaryWeapon(); break;
+	case EWeaponType::WT_MeleeWeapon:	  return GetMeleeWeapon();	   break;
+	}
+	return nullptr;
+}
+
 bool UCPP_BaseInventoryComponent::TryUpdateSelectedWeapon()
 {
 	if (MainWeapon)
@@ -209,6 +220,32 @@ void UCPP_BaseInventoryComponent::SpawnWeaponBySoftPtr(TSoftClassPtr<class ACPP_
 	}
 }
 
+void UCPP_BaseInventoryComponent::UnselectWeapon()
+{
+	if (SelectedWeapon)
+	{
+		SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Back);
+		SelectedWeapon->OnWeaponAttachTypeChanged();
+		SelectedWeapon = nullptr;
+	}
+}
+
+void UCPP_BaseInventoryComponent::ServerSelectWeaponByWeaponType_Implementation(EWeaponType WeaponType)
+{
+	if (ACPP_Weapon* weapon = GetWeaponByWeaponType(WeaponType))
+	{
+		if (weapon != GetSelectedWeapon())
+		{
+			UnselectWeapon();
+			if (TryUpdateSelectedWeapon(weapon))
+			{
+				SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
+				SelectedWeapon->OnWeaponAttachTypeChanged();
+			}
+		}
+	}
+}
+
 void UCPP_BaseInventoryComponent::SpawnInitialWeaponsSet()
 {
 	DefaultMainWeaponClass     .LoadSynchronous();
@@ -228,6 +265,11 @@ void UCPP_BaseInventoryComponent::SpawnInitialWeaponsSet()
 		SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
 		SelectedWeapon->OnWeaponAttachTypeChanged();
 	}
+}
+
+void UCPP_BaseInventoryComponent::SelectWeaponByWeaponType(EWeaponType WeaponType)
+{
+	ServerSelectWeaponByWeaponType(WeaponType);
 }
 
 void UCPP_BaseInventoryComponent::BeginPlay()

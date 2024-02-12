@@ -7,6 +7,7 @@
 #include "Base/ActorComponents/Character/CPP_BaseInventoryComponent.h"
 #include "CPP_WeaponWorldMeshActor.h"
 #include "CPP_WeaponComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 ACPP_Weapon::ACPP_Weapon()
@@ -29,6 +30,7 @@ void ACPP_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ACPP_Weapon, WeaponAttachType);
 	DOREPLIFETIME(ACPP_Weapon, WeaponInfo);
 	DOREPLIFETIME(ACPP_Weapon, bWeaponInUse);
+	DOREPLIFETIME(ACPP_Weapon, bWeaponLocked);
 }
 
 void ACPP_Weapon::UpdateWeaponOwner(ACPP_BaseCharacter* NewWeaponOwner)
@@ -51,6 +53,23 @@ void ACPP_Weapon::Interact_Implementation(ACPP_BaseCharacter* Caller)
 void ACPP_Weapon::MoveCommonWeaponInfo_Implementation(const FWeaponInfo& InWeaponInfo)
 {
 	WeaponInfo = InWeaponInfo;
+}
+
+void ACPP_Weapon::PlayWeaponSound(USoundBase* Sound)
+{
+	if (WeaponOwner->IsLocallyControlled())
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), Sound);
+	}
+	else
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound, GetActorLocation());
+	}
+}
+
+void ACPP_Weapon::UnlockWeapon()
+{
+	bWeaponLocked = false;
 }
 
 void ACPP_Weapon::OnWeaponOwnerChanged()
@@ -79,6 +98,20 @@ void ACPP_Weapon::OnWeaponAttachTypeChanged_Implementation()
 	case EWeaponAttachType::WAT_Active:
 	{
 		attachingSocketName = WeaponInfo.ActiveAttachingSocketName;
+
+		if (HasAuthority())
+		{
+			FTimerHandle th;
+			FTimerDelegate td;
+
+			td.BindUFunction(this, FName("UnlockWeapon"));
+
+			GetWorld()->GetTimerManager().SetTimer(th, td, PreparingTime, false, PreparingTime);
+
+			PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Preparing);
+			WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Preparing, PreparingTime);
+		}
+
 	} break;
 	case EWeaponAttachType::WAT_Back:
 	{

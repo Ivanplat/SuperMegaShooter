@@ -7,6 +7,7 @@
 #include "CPP_BaseGameMode.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerOrAiJoined, AController*, Controller);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStarted);
 
 UCLASS()
 class SUPERMEGASHOOTER_API ACPP_BaseGameMode : public AGameModeBase
@@ -25,10 +26,18 @@ protected:
 
 	virtual void BeginPlay() override;
 
+	UFUNCTION(NetMulticast, Reliable)
+	void MulticastCallGameStartedDelegate();
+
+	virtual void MulticastCallGameStartedDelegate_Implementation();
+
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Start Game")
 	FPlayerOrAiJoined PlayerOrAiJoinedDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category = "Start Game")
+	FGameStarted GameStartedDelegate;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Start Game | Spawn")

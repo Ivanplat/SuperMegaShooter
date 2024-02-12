@@ -5,7 +5,6 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/PlayerStart.h"
-
 #include "Player/CPP_PlayerCharacter.h"
 
 
@@ -52,4 +51,9 @@ void ACPP_BaseGameMode::BeginPlay()
 	StartPoints = GetAllStartPoints();
 
 	PlayerOrAiJoinedDelegate.AddDynamic(this, &ACPP_BaseGameMode::OnPlayerOrAiJoined);
+}
+
+void ACPP_BaseGameMode::MulticastCallGameStartedDelegate_Implementation()
+{
+	GameStartedDelegate.Broadcast();
 }

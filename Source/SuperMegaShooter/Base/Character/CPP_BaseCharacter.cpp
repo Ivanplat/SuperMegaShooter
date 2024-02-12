@@ -9,6 +9,9 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "CharacterWeaponAnimationInfo.h"
 #include "Actors/Weapons/FireWeapons/CPP_FireWeapon.h"
+#include "GameFramework/PawnMovementComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ACPP_BaseCharacter::ACPP_BaseCharacter()
 {
@@ -35,6 +38,8 @@ ACPP_BaseCharacter::ACPP_BaseCharacter()
 	{
 		CharacterWeaponAnimationsDataTable = characterWeaponAnimsHelper.Object;
 	}
+
+	GetMovementComponent()->NavAgentProps.bCanCrouch = true;
 }
 
 void ACPP_BaseCharacter::BeginPlay()
@@ -130,10 +135,44 @@ void ACPP_BaseCharacter::ServerReloadWeapon_Implementation()
 	}
 }
 
+void ACPP_BaseCharacter::StartCrouch()
+{
+	Crouch();
+}
+
+void ACPP_BaseCharacter::StopCrouching()
+{
+	UnCrouch();
+}
+
+void ACPP_BaseCharacter::SelectMainWeapon()
+{
+	GetInventoryComponent()->SelectWeaponByWeaponType(EWeaponType::WT_MainWeapon);
+}
+
+void ACPP_BaseCharacter::SelectSecondaryWeapon()
+{
+	GetInventoryComponent()->SelectWeaponByWeaponType(EWeaponType::WT_SecondaryWeapon);
+}
+
+void ACPP_BaseCharacter::SelectMeleeWeapon()
+{
+	GetInventoryComponent()->SelectWeaponByWeaponType(EWeaponType::WT_MeleeWeapon);
+}
+
+inline void ACPP_BaseCharacter::CalculateLookingVerticalAngle()
+{
+	if (AActor* controller = Cast<AActor>(GetController()))
+	{
+		LookingVerticalAngle = UKismetMathLibrary::Conv_VectorToRotator(controller->GetActorForwardVector()).Pitch;
+	}
+}
+
 void ACPP_BaseCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	CalculateLookingVerticalAngle();
 }
 
 inline USkeletalMeshComponent* ACPP_BaseCharacter::GetVisibleMesh() const
@@ -144,6 +183,11 @@ inline USkeletalMeshComponent* ACPP_BaseCharacter::GetVisibleMesh() const
 inline USkeletalMeshComponent* ACPP_BaseCharacter::GetFPMesh() const
 {
 	return FPMesh;
+}
+
+inline UCameraComponent* ACPP_BaseCharacter::GetFPCamera() const
+{
+	return FPCamera;
 }
 
 inline bool ACPP_BaseCharacter::TryGetCharacterLookingVector(FVector& OutVector) const
@@ -161,6 +205,13 @@ inline bool ACPP_BaseCharacter::TryGetCharacterLookingVector(FVector& OutVector)
 		return true;
 	}
 	return false;
+}
+
+void ACPP_BaseCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(ACPP_BaseCharacter, LookingVerticalAngle);
 }
 
 void ACPP_BaseCharacter::ServerInteract_Implementation()

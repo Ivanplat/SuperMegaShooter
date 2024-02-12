@@ -7,6 +7,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
+#include "Camera/CameraComponent.h"
+
+ACPP_FireWeapon::ACPP_FireWeapon()
+{
+	GunFirePoint = CreateDefaultSubobject<USceneComponent>(TEXT("GunFirePoint"));
+
+	check(GunFirePoint);
+
+	GunFirePoint->SetupAttachment(GetSkeletalMeshComponent());
+}
 
 void ACPP_FireWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -44,7 +54,7 @@ bool ACPP_FireWeapon::TryUseWeapon()
 
 bool ACPP_FireWeapon::IsAbleToUseWeapon() const
 {
-	return !bWeaponInUse && CurrentAmmo > 0 && !bReloading;
+	return !bWeaponInUse && CurrentAmmo > 0 && !bReloading && !bWeaponLocked;
 }
 
 void ACPP_FireWeapon::Fire()
@@ -59,8 +69,9 @@ void ACPP_FireWeapon::Fire()
 	params.AddIgnoredActor(WeaponOwner);
 	params.AddIgnoredActor(this);
 	
-	WeaponOwner->GetActorEyesViewPoint(start, rotator);
+	WeaponOwner->GetActorEyesViewPoint(temp, rotator);
 
+	start = WeaponOwner->GetFPCamera()->GetComponentLocation();
 	end = start + rotator.Vector() * 10000.0f;
 
 	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 2.0f, (uint8)0U, 0.5f);
@@ -81,6 +92,9 @@ void ACPP_FireWeapon::Fire()
 			);
 		}
 	}
+
+	PlayWeaponSoundByType(EWeaponSoundType::WST_Using);
+	PlayUsingWeaponEffects();
 
 	PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Using);
 	WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Using, FireDelay);
@@ -124,6 +138,7 @@ void ACPP_FireWeapon::PlayWeaponAnimationMulticast_Implementation(EWeaponAnimati
 	case EWeaponAnimationType::WAnT_Using:      animation = UsingAnimation;		 break;
 	case EWeaponAnimationType::WAnT_Reloading:  animation = ReloadingAnimation;  break;
 	case EWeaponAnimationType::WAnT_Inspection: animation = InspectionAnimation; break;
+	case EWeaponAnimationType::WAnT_Preparing:  animation = PreparingAnimation;  break;
 	}
 
 	if (animation)
@@ -134,7 +149,7 @@ void ACPP_FireWeapon::PlayWeaponAnimationMulticast_Implementation(EWeaponAnimati
 
 bool ACPP_FireWeapon::IsAbleToReload() const
 {
-	return CurrentAmmo < MaxCurrentAmmo && CurrentAmmoInBack > 0 && !bReloading && !bWeaponInUse;
+	return CurrentAmmo < MaxCurrentAmmo && CurrentAmmoInBack > 0 && !bReloading && !bWeaponInUse && !bWeaponLocked;
 }
 
 void ACPP_FireWeapon::Reload()
@@ -160,6 +175,16 @@ inline bool ACPP_FireWeapon::IsReloading() const
 	return bReloading;
 }
 
+inline int32 ACPP_FireWeapon::GetCurrentAmmo() const
+{
+	return CurrentAmmo;
+}
+
+inline int32 ACPP_FireWeapon::GetCurrentAmmoInBack() const
+{
+	return CurrentAmmoInBack;
+}
+
 void ACPP_FireWeapon::EndReloading()
 {
 	const int32 ammoNeededToReload = MaxCurrentAmmo - CurrentAmmo;
@@ -181,4 +206,24 @@ void ACPP_FireWeapon::EndReloading()
 bool ACPP_FireWeapon::IsNeededToReload() const
 {
 	return CurrentAmmo == 0;
+}
+
+void ACPP_FireWeapon::PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType)
+{
+	USoundBase* sound = nullptr;
+	switch (WeaponSoundType)
+	{
+	case EWeaponSoundType::WST_Using:   sound = UsingSound;      break;
+	case EWeaponSoundType::WST_Preparing: sound = PreparingSound;  break;
+	case EWeaponSoundType::WST_Reloading:  sound = ReloadingSound;  break;
+	}
+	PlayWeaponSound(sound);
+}
+
+void ACPP_FireWeapon::PlayUsingWeaponEffects_Implementation()
+{
+	if (UsingParticleSystemTemplate)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UsingParticleSystemTemplate, GunFirePoint->GetComponentTransform());
+	}
 }

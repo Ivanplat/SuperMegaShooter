@@ -64,6 +64,21 @@ protected:
 
 	virtual void PlayWeaponAnimationMulticast_Implementation(EWeaponAnimationType AnimationType) {}
 
+	UFUNCTION(NetMulticast, Reliable)
+	void PlayWeaponSoundByType(EWeaponSoundType WeaponSoundType);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void PlayUsingWeaponEffects();
+
+	virtual void PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType) {}
+
+	virtual void PlayUsingWeaponEffects_Implementation() {}
+
+	virtual void PlayWeaponSound(USoundBase* Sound);
+
+	UFUNCTION()
+	virtual void UnlockWeapon();
+
 public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated, Category = "Weapon | Settings")
 	FWeaponInfo WeaponInfo;
@@ -96,6 +111,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
 	EWeaponId WeaponId;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings", Replicated)
+	bool bWeaponLocked = true;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
+	float PreparingTime = 0.3f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
 	UAnimationAsset* IdleAnimation;
 
@@ -104,4 +125,16 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
 	UAnimationAsset* InspectionAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
+	UAnimationAsset* PreparingAnimation;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Effects")
+	UParticleSystem* UsingParticleSystemTemplate;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
+	USoundBase* UsingSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
+	USoundBase* PreparingSound;
 };
