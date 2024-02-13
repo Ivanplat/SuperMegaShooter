@@ -8,6 +8,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "DrawDebugHelpers.h"
 #include "Camera/CameraComponent.h"
+#include "Components/AudioComponent.h"
 
 ACPP_FireWeapon::ACPP_FireWeapon()
 {
@@ -158,16 +159,25 @@ void ACPP_FireWeapon::Reload()
 	{
 		bReloading = true;
 
-		FTimerHandle th;
 		FTimerDelegate td;
 
 		td.BindUFunction(this, FName("EndReloading"));
 
-		GetWorld()->GetTimerManager().SetTimer(th, td, ReloadingTime, false, ReloadingTime);
+		GetWorld()->GetTimerManager().SetTimer(ReloadingTimerHandler, td, ReloadingTime, false, ReloadingTime);
 
 		PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Reloading);
 		WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Reloading, ReloadingTime);
 	}
+}
+
+void ACPP_FireWeapon::ManualStopReloading()
+{
+	GetWorld()->GetTimerManager().ClearTimer(ReloadingTimerHandler);
+
+	///
+	DestroyAudioComponent(ReloadingAudioComponent);
+	bReloading = false;
+	WeaponOwner->MulticastStopPlayCharacterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Reloading);
 }
 
 inline bool ACPP_FireWeapon::IsReloading() const
@@ -213,11 +223,11 @@ void ACPP_FireWeapon::PlayWeaponSoundByType_Implementation(EWeaponSoundType Weap
 	USoundBase* sound = nullptr;
 	switch (WeaponSoundType)
 	{
-	case EWeaponSoundType::WST_Using:   sound = UsingSound;      break;
-	case EWeaponSoundType::WST_Preparing: sound = PreparingSound;  break;
+	case EWeaponSoundType::WST_Using:	   sound = UsingSound;      break;
+	case EWeaponSoundType::WST_Preparing:  sound = PreparingSound;  break;
 	case EWeaponSoundType::WST_Reloading:  sound = ReloadingSound;  break;
 	}
-	PlayWeaponSound(sound);
+	PlayWeaponSound(sound, WeaponSoundType);
 }
 
 void ACPP_FireWeapon::PlayUsingWeaponEffects_Implementation()
@@ -225,5 +235,38 @@ void ACPP_FireWeapon::PlayUsingWeaponEffects_Implementation()
 	if (UsingParticleSystemTemplate)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UsingParticleSystemTemplate, GunFirePoint->GetComponentTransform());
+	}
+}
+
+void ACPP_FireWeapon::PlayWeaponSound(USoundBase* Sound, EWeaponSoundType SoundType)
+{
+	if (WeaponOwner->IsLocallyControlled())
+	{
+		switch (SoundType)
+		{
+		case EWeaponSoundType::WST_Reloading: 
+		{
+			if (!ReloadingAudioComponent)
+			{
+				ReloadingAudioComponent = UGameplayStatics::CreateSound2D(GetWorld(), Sound);
+			}
+			ReloadingAudioComponent->Play(); 
+		} break;
+		case EWeaponSoundType::WST_Preparing:
+		case EWeaponSoundType::WST_Using: 	UGameplayStatics::PlaySound2D(GetWorld(), Sound); break;
+		}
+	}
+	else
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound, GetActorLocation());
+	}
+}
+
+void ACPP_FireWeapon::DestroyAudioComponent_Implementation(UAudioComponent* Component)
+{
+	if (Component)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("123333"));
+		Component->Stop();
 	}
 }

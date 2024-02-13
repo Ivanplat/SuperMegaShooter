@@ -8,6 +8,11 @@
 #include "Player/CPP_PlayerCharacter.h"
 
 
+ACPP_BaseGameMode::ACPP_BaseGameMode()
+{
+	CharacterDiedDelegate.AddDynamic(this, &ACPP_BaseGameMode::OnCharacterDied);
+}
+
 void ACPP_BaseGameMode::OnPlayerOrAiJoined(AController* Controller)
 {
 	const APlayerStart* startPoint = GetRandomStartPoint();
@@ -56,4 +61,34 @@ void ACPP_BaseGameMode::BeginPlay()
 void ACPP_BaseGameMode::MulticastCallGameStartedDelegate_Implementation()
 {
 	GameStartedDelegate.Broadcast();
+}
+
+void ACPP_BaseGameMode::OnCharacterDied(AController* Controller)
+{
+	if (!Controller) return;
+
+	if (APawn* pawn = Controller->GetPawn())
+	{
+		pawn->Destroy();
+	}
+
+	FTimerHandle th;
+	FTimerDelegate td;
+
+	td.BindUObject(this, &ACPP_BaseGameMode::RespawnCharacter, Controller);
+
+	GetWorld()->GetTimerManager().SetTimer(th, td, RespawnTime, false, RespawnTime);
+}
+
+void ACPP_BaseGameMode::RespawnCharacter(AController* Controller)
+{
+	const APlayerStart* startPoint = GetRandomStartPoint();
+
+	if (startPoint)
+	{
+		if (ACPP_BaseCharacter* character = SpawnPlayerOrAi(Controller, startPoint->GetActorTransform()))
+		{
+			Controller->Possess(character);
+		}
+	}
 }

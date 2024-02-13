@@ -40,6 +40,11 @@ public:
 
 	virtual void SelectWeaponByWeaponType(EWeaponType WeaponType);
 
+	UFUNCTION(BlueprintCallable, Category = "Inventory Component | Weapons")
+	virtual inline void SetShouldDestroyWeapons(bool bValue);
+
+	void OnCharacterDestroyed();
+
 protected:
 
 	UFUNCTION(Server, Reliable)
@@ -58,6 +63,12 @@ protected:
 	virtual void ServerSelectWeaponByWeaponType_Implementation(EWeaponType WeaponType);
 
 	virtual void BeginPlay() override;
+
+	virtual void DestroyAllWeapons();
+
+	virtual void RemoveOwnershipFromAllWeapons();
+
+	virtual bool SpawnStaticMeshWeaponByWeaponPtr(class ACPP_Weapon* WeaponToDrop);
 
 protected:
 	UPROPERTY(Replicated)
@@ -80,4 +91,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Invenotory Component | Weapons | Classes")
 	TSoftClassPtr<ACPP_Weapon> DefaultMeleeWeaponClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory Component | Weapons")
+	bool bShouldDestroyWeapons = false;
 };

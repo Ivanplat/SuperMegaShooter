@@ -12,6 +12,7 @@
 #include "GameFramework/PawnMovementComponent.h"
 #include "Net/UnrealNetwork.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Base/ActorComponents/Character/CPP_BaseHealthComponent.h"
 
 ACPP_BaseCharacter::ACPP_BaseCharacter()
 {
@@ -40,21 +41,14 @@ ACPP_BaseCharacter::ACPP_BaseCharacter()
 	}
 
 	GetMovementComponent()->NavAgentProps.bCanCrouch = true;
+
+
+	OnTakePointDamage.AddDynamic(this, &ACPP_BaseCharacter::OnCharacterTakePointDamage);
 }
 
 void ACPP_BaseCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	if (HasAuthority())
-	{
-		FTimerHandle th;
-		FTimerDelegate td;
-
-		td.BindUObject(GetInventoryComponent(), &UCPP_BaseInventoryComponent::SpawnInitialWeaponsSet);
-
-		GetWorld()->GetTimerManager().SetTimer(th, td, 0.5f, false, 0.5f);
-	}
 }
 
 void ACPP_BaseCharacter::ServerDropWeapon_Implementation()
@@ -90,7 +84,7 @@ void ACPP_BaseCharacter::MulticastPlayCharaterWeaponMontage_Implementation(EWeap
 				if (NeededTime > 0.0f)
 				{
 					float timeEx = (*montage)->GetPlayLength();
-					playRate = NeededTime / timeEx;
+					playRate = timeEx / NeededTime;
 				}
 
 				animInstance->Montage_Play(*montage, playRate);
@@ -165,6 +159,40 @@ inline void ACPP_BaseCharacter::CalculateLookingVerticalAngle()
 	if (AActor* controller = Cast<AActor>(GetController()))
 	{
 		LookingVerticalAngle = UKismetMathLibrary::Conv_VectorToRotator(controller->GetActorForwardVector()).Pitch;
+	}
+}
+
+void ACPP_BaseCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	if (NewController)
+	{
+		FTimerHandle th;
+		FTimerDelegate td;
+
+		td.BindUObject(GetInventoryComponent(), &UCPP_BaseInventoryComponent::SpawnInitialWeaponsSet);
+
+		GetWorld()->GetTimerManager().SetTimer(th, td, 0.5f, false, 0.5f);
+	}
+}
+
+void ACPP_BaseCharacter::OnCharacterTakePointDamage
+(
+	AActor* DamagedActor,
+	float Damage,
+	AController* InstigatedBy,
+	FVector HitLocation, 
+	UPrimitiveComponent* HitComponent, 
+	FName BoneName,
+	FVector ShotDirectionFrom, 
+	const UDamageType* DamageType,
+	AActor* DamageCauser
+)
+{
+	if (HasAuthority())
+	{
+		GetHealthComponent()->ApplyDamage(InstigatedBy, DamageCauser);
 	}
 }
 

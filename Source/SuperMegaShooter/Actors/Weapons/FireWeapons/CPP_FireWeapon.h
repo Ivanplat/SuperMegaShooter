@@ -26,6 +26,8 @@ public:
 
 	virtual void Reload();
 
+	virtual void ManualStopReloading();
+
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Fire Weapon | Settings")
 	virtual inline bool IsReloading() const;
 
@@ -57,6 +59,13 @@ protected:
 
 	virtual void PlayUsingWeaponEffects_Implementation() override;
 
+	virtual void PlayWeaponSound(USoundBase* Sound, EWeaponSoundType SoundType) override;
+
+	UFUNCTION(NetMulticast, Reliable)
+	void DestroyAudioComponent(UAudioComponent* Component);
+
+	virtual void DestroyAudioComponent_Implementation(UAudioComponent* Component);
+
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings", Replicated)
 	int32 CurrentAmmo;
@@ -82,9 +91,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings")
 	float ReloadingTime = 1.0f;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings")
-	FTimerHandle AutoFireTimeHandler;
-
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
 	UAnimationAsset* ReloadingAnimation;
 
@@ -93,4 +99,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon | Components")
 	USceneComponent* GunFirePoint;
+
+	UPROPERTY()
+	FTimerHandle AutoFireTimeHandler;
+
+	UPROPERTY()
+	FTimerHandle ReloadingTimerHandler;
+
+	UPROPERTY()
+	UAudioComponent* ReloadingAudioComponent;
 };

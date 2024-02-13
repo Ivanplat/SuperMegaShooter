@@ -22,7 +22,7 @@ public:
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	virtual void UpdateWeaponOwner(class ACPP_BaseCharacter* NewWeaponOwner);
+	virtual void UpdateWeaponOwner(class ACPP_BaseCharacter* NewWeaponOwner, bool bShouldUpdateNetwork = true);
 
 	virtual void UpdateWeaponAttachType(EWeaponAttachType NewAttachType);
 
@@ -48,7 +48,12 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Weapon | Settings")
 	virtual inline EWeaponId GetWeaponId() const;
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Weapon | Settings")
+	virtual inline int32 GetWeaponDamage() const;
+
 	DECLARE_GET_WEAPON_COMPONENT_METHODE();
+
+	virtual void PrepareWeapon(bool bShouldDelay = false);
 
 protected:
 	virtual void Interact_Implementation(class ACPP_BaseCharacter* Caller) override;
@@ -64,6 +69,8 @@ protected:
 
 	virtual void PlayWeaponAnimationMulticast_Implementation(EWeaponAnimationType AnimationType) {}
 
+	virtual void PlayPreparingAnimation(const float Delay);
+
 	UFUNCTION(NetMulticast, Reliable)
 	void PlayWeaponSoundByType(EWeaponSoundType WeaponSoundType);
 
@@ -74,7 +81,7 @@ protected:
 
 	virtual void PlayUsingWeaponEffects_Implementation() {}
 
-	virtual void PlayWeaponSound(USoundBase* Sound);
+	virtual void PlayWeaponSound(USoundBase* Sound, EWeaponSoundType SoundType) {}
 
 	UFUNCTION()
 	virtual void UnlockWeapon();

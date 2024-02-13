@@ -19,9 +19,12 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
-	virtual bool ApplyDamage(AActor* Instigator, AActor* Weapon);
+	virtual bool ApplyDamage(AActor* Instigator, AActor* DamageCauser);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health Component")
 	int32 Health = 100;
+
+	UPROPERTY(EditDefaultsOnly, Replicated, Category = "Health Component")
+	bool bAlive = true;
 };

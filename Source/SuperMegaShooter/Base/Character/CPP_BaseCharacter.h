@@ -49,6 +49,23 @@ protected:
 
 	inline void CalculateLookingVerticalAngle();
 
+	virtual void PossessedBy(AController* NewController) override;
+
+	UFUNCTION()
+	virtual void OnCharacterTakePointDamage
+	(
+		AActor* DamagedActor, 
+		float Damage,
+		class AController* InstigatedBy,
+		FVector HitLocation, 
+		class UPrimitiveComponent* HitComponent,
+		FName BoneName, 
+		FVector ShotDirectionFrom,
+		const class UDamageType* DamageType, 
+		AActor* DamageCauser
+	);
+
+
 public:	
 	virtual void Tick(float DeltaTime) override;
 

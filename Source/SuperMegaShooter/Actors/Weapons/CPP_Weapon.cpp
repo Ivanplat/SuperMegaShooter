@@ -33,9 +33,15 @@ void ACPP_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 	DOREPLIFETIME(ACPP_Weapon, bWeaponLocked);
 }
 
-void ACPP_Weapon::UpdateWeaponOwner(ACPP_BaseCharacter* NewWeaponOwner)
+void ACPP_Weapon::UpdateWeaponOwner(ACPP_BaseCharacter* NewWeaponOwner, bool bShouldUpdateNetwork)
 {
-	SetOwner(NewWeaponOwner);
+	if (bShouldUpdateNetwork && NewWeaponOwner)
+	{
+		if (AController* controller = NewWeaponOwner->GetController())
+		{
+			SetOwner(controller);
+		}
+	}
 	WeaponOwner = NewWeaponOwner;
 }
 
@@ -44,9 +50,35 @@ void ACPP_Weapon::UpdateWeaponAttachType(EWeaponAttachType NewAttachType)
 	WeaponAttachType = NewAttachType;
 }
 
+void ACPP_Weapon::PrepareWeapon(bool bShouldDelay)
+{
+	if (HasAuthority())
+	{
+		FTimerHandle th;
+		FTimerDelegate td;
+
+		td.BindUFunction(this, FName("UnlockWeapon"));
+
+		GetWorld()->GetTimerManager().SetTimer(th, td, PreparingTime, false, PreparingTime);
+
+
+		if (bShouldDelay && !UKismetSystemLibrary::IsServer(this))
+		{
+			PlayPreparingAnimation(PreparingTime / 10.0f);
+		}
+		else
+		{
+			PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Preparing);
+			WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Preparing, PreparingTime);
+		}
+	}
+}
+
 void ACPP_Weapon::Interact_Implementation(ACPP_BaseCharacter* Caller)
 {
+	UE_LOG(LogTemp, Error, TEXT("123"));
 	if (WeaponOwner) return;
+	UE_LOG(LogTemp, Error, TEXT("321"));
 	Caller->GetInventoryComponent()->PickUpWeapon(this);
 }
 
@@ -55,16 +87,18 @@ void ACPP_Weapon::MoveCommonWeaponInfo_Implementation(const FWeaponInfo& InWeapo
 	WeaponInfo = InWeaponInfo;
 }
 
-void ACPP_Weapon::PlayWeaponSound(USoundBase* Sound)
+void ACPP_Weapon::PlayPreparingAnimation(const float Delay)
 {
-	if (WeaponOwner->IsLocallyControlled())
-	{
-		UGameplayStatics::PlaySound2D(GetWorld(), Sound);
-	}
-	else
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound, GetActorLocation());
-	}
+	FTimerHandle th;
+	FTimerDelegate td;
+
+	td.BindLambda([&]() 
+		{
+			PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Preparing);
+			WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Preparing, PreparingTime);
+		});
+
+	GetWorld()->GetTimerManager().SetTimer(th, td, Delay, false, Delay);
 }
 
 void ACPP_Weapon::UnlockWeapon()
@@ -98,19 +132,6 @@ void ACPP_Weapon::OnWeaponAttachTypeChanged_Implementation()
 	case EWeaponAttachType::WAT_Active:
 	{
 		attachingSocketName = WeaponInfo.ActiveAttachingSocketName;
-
-		if (HasAuthority())
-		{
-			FTimerHandle th;
-			FTimerDelegate td;
-
-			td.BindUFunction(this, FName("UnlockWeapon"));
-
-			GetWorld()->GetTimerManager().SetTimer(th, td, PreparingTime, false, PreparingTime);
-
-			PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Preparing);
-			WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Preparing, PreparingTime);
-		}
 
 	} break;
 	case EWeaponAttachType::WAT_Back:
@@ -151,4 +172,9 @@ inline bool ACPP_Weapon::GetWeaponInUse() const
 inline EWeaponId ACPP_Weapon::GetWeaponId() const
 {
 	return WeaponId;
+}
+
+inline int32 ACPP_Weapon::GetWeaponDamage() const
+{
+	return Damage;
 }

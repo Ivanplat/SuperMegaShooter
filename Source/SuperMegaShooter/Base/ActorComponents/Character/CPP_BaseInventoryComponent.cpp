@@ -7,6 +7,7 @@
 #include "Base/Character/CPP_BaseCharacter.h"
 #include "Actors/Weapons/CPP_WeaponWorldMeshActor.h"
 #include "Actors/Weapons/CPP_WeaponComponent.h"
+#include "Actors/Weapons/FireWeapons/CPP_FireWeapon.h"
 
 
 void UCPP_BaseInventoryComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -28,6 +29,14 @@ void UCPP_BaseInventoryComponent::PickUpWeapon(ACPP_Weapon* Weapon)
 		SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
 		SelectedWeapon->OnWeaponOwnerChanged();
 		SelectedWeapon->OnWeaponAttachTypeChanged();
+		SelectedWeapon->PrepareWeapon();
+
+		switch (SelectedWeapon->WeaponInfo.WeaponType)
+		{
+		case EWeaponType::WT_MainWeapon:	  {TryUpdateWeapon(&MainWeapon, SelectedWeapon);     } break;
+		case EWeaponType::WT_SecondaryWeapon: {TryUpdateWeapon(&SecondaryWeapon, SelectedWeapon);} break;
+		case EWeaponType::WT_MeleeWeapon:	  {TryUpdateWeapon(&MeleeWeapon, SelectedWeapon);    } break;
+		}
 	}
 	else
 	{
@@ -39,6 +48,7 @@ void UCPP_BaseInventoryComponent::PickUpWeapon(ACPP_Weapon* Weapon)
 				SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
 				SelectedWeapon->OnWeaponOwnerChanged();
 				SelectedWeapon->OnWeaponAttachTypeChanged();
+				SelectedWeapon->PrepareWeapon();
 			}
 		}
 		else
@@ -67,49 +77,7 @@ void UCPP_BaseInventoryComponent::DropWeapon(ACPP_Weapon* WeaponToDrop, bool bSh
 {
 	if (WeaponToDrop)
 	{
-		FVector impulseVector;
-
-		if (!GetComponentOwner()->TryGetCharacterLookingVector(impulseVector))
-		{
-			return; ////
-		}
-
-
-		WeaponToDrop->WeaponWorldMeshActorClass.LoadSynchronous();
-
-		if (!WeaponToDrop->WeaponWorldMeshActorClass.IsValid()) return;
-
-
-		FActorSpawnParameters params;
-		params.Owner = GetComponentOwner();
-		params.Instigator = GetComponentOwner();
-
-		if (ACPP_WeaponWorldMeshActor* meshActor = 
-			GetWorld()->SpawnActor<ACPP_WeaponWorldMeshActor>
-			(
-				WeaponToDrop->WeaponWorldMeshActorClass.Get(),
-				WeaponToDrop->GetActorTransform(),
-				params
-			)
-			)
-		{
-			meshActor->SetWeaponStaticMesh(WeaponToDrop->WeaponStaticMeshPtr);
-
-			meshActor->WeaponClass = WeaponToDrop->GetClass();
-
-			ICPP_WeaponInterface::Execute_MoveCommonWeaponInfo(meshActor, WeaponToDrop->WeaponInfo);
-			meshActor->MoveWeaponSkin(WeaponToDrop->GetSkeletalMeshComponent()->GetMaterials());
-			meshActor->GetWeaponComponent()->OnWeaponMaterialsChanged();
-
-			meshActor->GetStaticMeshComponent()->AddImpulse
-			(
-				impulseVector * 400.0f,
-				NAME_None,
-				true
-			);
-		}
-
-		WeaponToDrop->WeaponWorldMeshActorClass.Reset();
+		if (!SpawnStaticMeshWeaponByWeaponPtr(WeaponToDrop)) return;
 
 		switch (WeaponToDrop->WeaponInfo.WeaponType)
 		{
@@ -124,10 +92,23 @@ void UCPP_BaseInventoryComponent::DropWeapon(ACPP_Weapon* WeaponToDrop, bool bSh
 			{
 				SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
 				SelectedWeapon->OnWeaponAttachTypeChanged();
+				SelectedWeapon->PrepareWeapon();
 			}
 		}
 
 		WeaponToDrop->Destroy();
+	}
+}
+
+void UCPP_BaseInventoryComponent::OnCharacterDestroyed()
+{
+	if (bShouldDestroyWeapons)
+	{
+		DestroyAllWeapons();
+	}
+	else
+	{
+		RemoveOwnershipFromAllWeapons();
 	}
 }
 
@@ -224,6 +205,13 @@ void UCPP_BaseInventoryComponent::UnselectWeapon()
 {
 	if (SelectedWeapon)
 	{
+		if (ACPP_FireWeapon* fireWeapon = Cast<ACPP_FireWeapon>(SelectedWeapon))
+		{
+			if (fireWeapon->IsReloading())
+			{
+				fireWeapon->ManualStopReloading();
+			}
+		}
 		SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Back);
 		SelectedWeapon->OnWeaponAttachTypeChanged();
 		SelectedWeapon = nullptr;
@@ -241,6 +229,7 @@ void UCPP_BaseInventoryComponent::ServerSelectWeaponByWeaponType_Implementation(
 			{
 				SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
 				SelectedWeapon->OnWeaponAttachTypeChanged();
+				SelectedWeapon->PrepareWeapon();
 			}
 		}
 	}
@@ -264,6 +253,7 @@ void UCPP_BaseInventoryComponent::SpawnInitialWeaponsSet()
 	{
 		SelectedWeapon->UpdateWeaponAttachType(EWeaponAttachType::WAT_Active);
 		SelectedWeapon->OnWeaponAttachTypeChanged();
+		SelectedWeapon->PrepareWeapon(true);
 	}
 }
 
@@ -272,7 +262,86 @@ void UCPP_BaseInventoryComponent::SelectWeaponByWeaponType(EWeaponType WeaponTyp
 	ServerSelectWeaponByWeaponType(WeaponType);
 }
 
+void UCPP_BaseInventoryComponent::SetShouldDestroyWeapons(bool bValue)
+{
+	bShouldDestroyWeapons = bValue;
+}
+
 void UCPP_BaseInventoryComponent::BeginPlay()
 {
 	UCPP_BaseCharacterComponent::BeginPlay();
+}
+
+void UCPP_BaseInventoryComponent::DestroyAllWeapons()
+{
+	if (MainWeapon)		 { MainWeapon->Destroy();      }
+	if (SecondaryWeapon) { SecondaryWeapon->Destroy(); }
+	if (MeleeWeapon)	 { MeleeWeapon->Destroy();     }
+}
+
+void UCPP_BaseInventoryComponent::RemoveOwnershipFromAllWeapons()
+{
+	if (MainWeapon)
+	{
+		DropWeapon(MainWeapon);
+		DestroyAllWeapons();
+		return;
+	}
+	if (SecondaryWeapon)
+	{
+		DropWeapon(SecondaryWeapon);
+		DestroyAllWeapons();
+		return;
+	}
+}
+
+bool UCPP_BaseInventoryComponent::SpawnStaticMeshWeaponByWeaponPtr(ACPP_Weapon* WeaponToDrop)
+{
+
+	FVector impulseVector;
+
+	if (!GetComponentOwner()->TryGetCharacterLookingVector(impulseVector))
+	{
+		return false; ////
+	}
+
+	WeaponToDrop->WeaponWorldMeshActorClass.LoadSynchronous();
+
+	if (!WeaponToDrop->WeaponWorldMeshActorClass.IsValid()) return false;
+
+
+	FActorSpawnParameters params;
+	params.Owner = GetComponentOwner();
+	params.Instigator = GetComponentOwner();
+
+	if (ACPP_WeaponWorldMeshActor* meshActor =
+		GetWorld()->SpawnActor<ACPP_WeaponWorldMeshActor>
+		(
+			WeaponToDrop->WeaponWorldMeshActorClass.Get(),
+			WeaponToDrop->GetActorTransform(),
+			params
+		)
+		)
+	{
+		meshActor->SetWeaponStaticMesh(WeaponToDrop->WeaponStaticMeshPtr);
+
+		meshActor->WeaponClass = WeaponToDrop->GetClass();
+
+		ICPP_WeaponInterface::Execute_MoveCommonWeaponInfo(meshActor, WeaponToDrop->WeaponInfo);
+		meshActor->MoveWeaponSkin(WeaponToDrop->GetSkeletalMeshComponent()->GetMaterials());
+		meshActor->GetWeaponComponent()->OnWeaponMaterialsChanged();
+
+		meshActor->GetStaticMeshComponent()->AddImpulse
+		(
+			impulseVector * 400.0f,
+			NAME_None,
+			true
+		);
+
+		WeaponToDrop->WeaponWorldMeshActorClass.Reset();
+		return true;
+	}
+
+	WeaponToDrop->WeaponWorldMeshActorClass.Reset();
+	return false;
 }
