@@ -55,16 +55,8 @@ protected:
 
 	virtual bool IsNeededToReload() const;
 
-	virtual void PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType) override;
-
 	virtual void PlayUsingWeaponEffects_Implementation() override;
 
-	virtual void PlayWeaponSound(USoundBase* Sound, EWeaponSoundType SoundType) override;
-
-	UFUNCTION(NetMulticast, Reliable)
-	void DestroyAudioComponent(UAudioComponent* Component);
-
-	virtual void DestroyAudioComponent_Implementation(UAudioComponent* Component);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings", Replicated)
@@ -93,9 +85,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Animations")
 	UAnimationAsset* ReloadingAnimation;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
-	USoundBase* ReloadingSound;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon | Components")
 	USceneComponent* GunFirePoint;

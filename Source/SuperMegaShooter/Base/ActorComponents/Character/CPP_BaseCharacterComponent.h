@@ -19,6 +19,12 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Character Component")
 	virtual inline class ACPP_BaseCharacter* GetComponentOwner() const;
 
+	template<class T>
+	inline T* GetComponentOwner() const
+	{
+		return Cast<T>(GetComponentOwner());
+	}
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -8,18 +8,33 @@
 #include "CPP_WeaponWorldMeshActor.h"
 #include "CPP_WeaponComponent.h"
 #include "Kismet/GameplayStatics.h"
-
+#include "Components/AudioComponent.h"
 
 ACPP_Weapon::ACPP_Weapon()
 {
-
 	CREATE_WEAPON_COMPONENT(WeaponComponent);
 
 	GetSkeletalMeshComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 
+	OthersAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("OthersAudioComponent"));
+
+	check(OthersAudioComponent);
+
+	OthersAudioComponent->SetupAttachment(GetSkeletalMeshComponent());
+
+	check(GetSkeletalMeshComponent());
+
 	WeaponInfo.WeaponName = typeid(this).name();
 
 	WeaponAttachType = EWeaponAttachType::WAT_NoOwner;
+
+	WeaponSounds = TMap<FName, USoundBase*>
+		(
+			{ 
+				TPair<FName, USoundBase*>(FName("Preparing"), static_cast<USoundBase*>(nullptr)),
+				TPair<FName, USoundBase*>(FName("Using"),	  static_cast<USoundBase*>(nullptr))
+			}
+		);
 }
 
 void ACPP_Weapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -76,9 +91,7 @@ void ACPP_Weapon::PrepareWeapon(bool bShouldDelay)
 
 void ACPP_Weapon::Interact_Implementation(ACPP_BaseCharacter* Caller)
 {
-	UE_LOG(LogTemp, Error, TEXT("123"));
 	if (WeaponOwner) return;
-	UE_LOG(LogTemp, Error, TEXT("321"));
 	Caller->GetInventoryComponent()->PickUpWeapon(this);
 }
 
@@ -101,9 +114,70 @@ void ACPP_Weapon::PlayPreparingAnimation(const float Delay)
 	GetWorld()->GetTimerManager().SetTimer(th, td, Delay, false, Delay);
 }
 
+void ACPP_Weapon::PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType)
+{
+	const FName weaponSoundTypeName = GetSoundTypeName(WeaponSoundType);
+
+	USoundBase** soundPtr = WeaponSounds.Find(weaponSoundTypeName);
+
+	if (soundPtr)
+	{
+		PlayWeaponSound(*soundPtr);
+	}
+}
+
+void ACPP_Weapon::PlayWeaponSound(USoundBase* Sound)
+{
+	UE_LOG(LogTemp, Error, TEXT("0"));
+	if (!Sound) { return; }
+
+	if (WeaponOwner->IsLocallyControlled())
+	{
+		UE_LOG(LogTemp, Error, TEXT("1"));
+		if (!ClientAudioComponent)
+		{
+			UE_LOG(LogTemp, Error, TEXT("2"));
+			ClientAudioComponent = UGameplayStatics::CreateSound2D(this, Sound);
+			ClientAudioComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+		}
+
+		if (ClientAudioComponent->Sound != Sound)
+		{
+			UE_LOG(LogTemp, Error, TEXT("3"));
+			ClientAudioComponent->SetSound(Sound);
+		}
+
+		UE_LOG(LogTemp, Error, TEXT("4"));
+		ClientAudioComponent->Play();
+	}
+	else
+	{
+		if (OthersAudioComponent->Sound != Sound)
+		{
+			OthersAudioComponent->SetSound(Sound);
+		}
+
+		OthersAudioComponent->Play();
+	}
+}
+
 void ACPP_Weapon::UnlockWeapon()
 {
 	bWeaponLocked = false;
+}
+
+void ACPP_Weapon::StopPlayingAudioComponents_Implementation()
+{
+	if (ClientAudioComponent)
+	{
+		ClientAudioComponent->Stop();
+		ClientAudioComponent->DestroyComponent();
+	}
+
+	if (OthersAudioComponent)
+	{
+		OthersAudioComponent->Stop();
+	}
 }
 
 void ACPP_Weapon::OnWeaponOwnerChanged()
@@ -111,7 +185,7 @@ void ACPP_Weapon::OnWeaponOwnerChanged()
 	if (WeaponOwner)
 	{
 		SetActorEnableCollision(false);
-		GetSkeletalMeshComponent()->SetSimulatePhysics(false);
+		//GetSkeletalMeshComponent()->SetSimulatePhysics(false);
 	}
 	else
 	{
@@ -178,3 +252,4 @@ inline int32 ACPP_Weapon::GetWeaponDamage() const
 {
 	return Damage;
 }
+

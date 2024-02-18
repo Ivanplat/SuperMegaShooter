@@ -50,6 +50,9 @@ struct SUPERMEGASHOOTER_API FWeaponInfo
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Weapon Info")
 	UTexture2D* WeaponUITexture = nullptr;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly, Category = "Weapon Info")
+	UTexture2D* WeaponUIKillFeedTexture = nullptr;
 };
 
 UENUM(BlueprintType)

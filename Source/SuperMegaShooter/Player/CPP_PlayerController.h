@@ -6,13 +6,16 @@
 #include "GameFramework/PlayerController.h"
 #include "CPP_PlayerController.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerCharacterReady);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerCharacterDead);
 
 UCLASS()
 class SUPERMEGASHOOTER_API ACPP_PlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+private:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerCharacterReady);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FPlayerCharacterDead);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FPlayerDead, const FString&, KillerName, const FString&, VictimName, UTexture2D*, DeathCauserUITexture);
 
 public:
 	ACPP_PlayerController();
@@ -34,10 +37,17 @@ protected:
 
 	virtual void ClientCallCharacterReadyDelegate_Implementation();
 
+	UFUNCTION()
+	virtual void OnPlayerDead(const FString& KillerName, const FString& VictimName, UTexture2D* DeathCauserUITexture);
+
+
 public:
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FPlayerCharacterReady PlayerCharacterReadyDelegate;
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FPlayerCharacterDead PlayerCharacterDeadDelegate;
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable)
+	FPlayerDead PlayerDeadDelegate;
 };

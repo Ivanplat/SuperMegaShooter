@@ -5,6 +5,11 @@
 #include "Player/CPP_PlayerCharacter.h"
 #include "Player/CPP_PlayerController.h"
 #include "Base/Game/CPP_BaseGameMode.h"
+#include "GameFramework/PlayerState.h"
+#include "Actors/Weapons/CPP_Weapon.h"
+#include "UI/Common/KillFeed/CPP_KillFeedMessageWidget.h"
+#include "UI/Common/KillFeed/CPP_KillFeedWidget.h"
+
 
 void ACPP_BaseHUD::BeginPlay()
 {

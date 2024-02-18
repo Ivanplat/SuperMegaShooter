@@ -17,6 +17,11 @@ ACPP_FireWeapon::ACPP_FireWeapon()
 	check(GunFirePoint);
 
 	GunFirePoint->SetupAttachment(GetSkeletalMeshComponent());
+
+	WeaponSounds.Add(TPair<FName, USoundBase*>
+		(
+			FName("Reloading"), static_cast<USoundBase*>(nullptr)
+		));
 }
 
 void ACPP_FireWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -165,6 +170,7 @@ void ACPP_FireWeapon::Reload()
 
 		GetWorld()->GetTimerManager().SetTimer(ReloadingTimerHandler, td, ReloadingTime, false, ReloadingTime);
 
+		PlayWeaponSoundByType(EWeaponSoundType::WST_Reloading);
 		PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Reloading);
 		WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Reloading, ReloadingTime);
 	}
@@ -175,7 +181,8 @@ void ACPP_FireWeapon::ManualStopReloading()
 	GetWorld()->GetTimerManager().ClearTimer(ReloadingTimerHandler);
 
 	///
-	DestroyAudioComponent(ReloadingAudioComponent);
+
+	StopPlayingAudioComponents();
 	bReloading = false;
 	WeaponOwner->MulticastStopPlayCharacterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Reloading);
 }
@@ -218,55 +225,11 @@ bool ACPP_FireWeapon::IsNeededToReload() const
 	return CurrentAmmo == 0;
 }
 
-void ACPP_FireWeapon::PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType)
-{
-	USoundBase* sound = nullptr;
-	switch (WeaponSoundType)
-	{
-	case EWeaponSoundType::WST_Using:	   sound = UsingSound;      break;
-	case EWeaponSoundType::WST_Preparing:  sound = PreparingSound;  break;
-	case EWeaponSoundType::WST_Reloading:  sound = ReloadingSound;  break;
-	}
-	PlayWeaponSound(sound, WeaponSoundType);
-}
 
 void ACPP_FireWeapon::PlayUsingWeaponEffects_Implementation()
 {
 	if (UsingParticleSystemTemplate)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UsingParticleSystemTemplate, GunFirePoint->GetComponentTransform());
-	}
-}
-
-void ACPP_FireWeapon::PlayWeaponSound(USoundBase* Sound, EWeaponSoundType SoundType)
-{
-	if (WeaponOwner->IsLocallyControlled())
-	{
-		switch (SoundType)
-		{
-		case EWeaponSoundType::WST_Reloading: 
-		{
-			if (!ReloadingAudioComponent)
-			{
-				ReloadingAudioComponent = UGameplayStatics::CreateSound2D(GetWorld(), Sound);
-			}
-			ReloadingAudioComponent->Play(); 
-		} break;
-		case EWeaponSoundType::WST_Preparing:
-		case EWeaponSoundType::WST_Using: 	UGameplayStatics::PlaySound2D(GetWorld(), Sound); break;
-		}
-	}
-	else
-	{
-		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Sound, GetActorLocation());
-	}
-}
-
-void ACPP_FireWeapon::DestroyAudioComponent_Implementation(UAudioComponent* Component)
-{
-	if (Component)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("123333"));
-		Component->Stop();
 	}
 }

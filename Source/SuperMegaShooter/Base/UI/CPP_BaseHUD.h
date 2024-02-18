@@ -11,6 +11,9 @@ class SUPERMEGASHOOTER_API ACPP_BaseHUD : public AHUD
 {
 	GENERATED_BODY()
 
+public:
+	virtual void AddKillFeedMessage(const FString& KillerName, const FString& VictimName, UTexture2D* DeathCauserUITexture) {}
+
 protected:
 	virtual void BeginPlay() override;
 

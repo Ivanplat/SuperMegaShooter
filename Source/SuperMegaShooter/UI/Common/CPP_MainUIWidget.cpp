@@ -4,3 +4,11 @@
 #include "UI/Common/CPP_MainUIWidget.h"
 #include "Components/Image.h"
 #include "UI/Weapons/CPP_WeaponPanelWidget.h"
+#include "UI/Player/CPP_HealthStatsWidget.h"
+#include "UI/Common/KillFeed/CPP_KillFeedWidget.h"
+#include "UI/Common/Time/CPP_TimeWidget.h"
+
+inline UCPP_KillFeedWidget* UCPP_MainUIWidget::GetKillFeedWidget() const
+{
+	return KillFeedWidget;
+}

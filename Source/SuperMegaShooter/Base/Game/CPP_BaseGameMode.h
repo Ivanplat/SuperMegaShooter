@@ -6,14 +6,16 @@
 #include "GameFramework/GameModeBase.h"
 #include "CPP_BaseGameMode.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerOrAiJoined, AController*, Controller);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDied, AController*, Controller);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStarted);
-
 UCLASS()
 class SUPERMEGASHOOTER_API ACPP_BaseGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
+
+private:
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPlayerOrAiJoined, AController*, Controller);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCharacterDied, AController*, Controller);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameStarted);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FGameOver);
 
 public:
 	ACPP_BaseGameMode();
@@ -50,6 +52,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Start Game")
 	FCharacterDied CharacterDiedDelegate;
+
+	UPROPERTY(BlueprintAssignable, Category = "Start Game")
+	FGameOver GameOverDelegate;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Start Game | Spawn")

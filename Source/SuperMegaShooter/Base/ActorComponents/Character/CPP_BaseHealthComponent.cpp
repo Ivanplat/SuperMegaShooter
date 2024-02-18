@@ -7,6 +7,9 @@
 #include "Net/UnrealNetwork.h"
 #include "Base/Game/CPP_BaseGameMode.h"
 #include "Base/ActorComponents/Character/CPP_BaseInventoryComponent.h"
+#include "Player/CPP_PlayerCharacter.h"
+#include "Player/CPP_PlayerState.h"
+#include "Player/CPP_PlayerController.h"
 
 
 void UCPP_BaseHealthComponent::BeginPlay()
@@ -22,30 +25,7 @@ void UCPP_BaseHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME(UCPP_BaseHealthComponent, bAlive);
 }
 
-bool UCPP_BaseHealthComponent::ApplyDamage(AActor* Instigator, AActor* DamageCauser)
+inline int32 UCPP_BaseHealthComponent::GetHealth() const
 {
-	if (!bAlive) return false;
-
-	if (ACPP_Weapon* weapon = Cast<ACPP_Weapon>(DamageCauser))
-	{
-		Health -= weapon->GetWeaponDamage();
-
-		UE_LOG(LogTemp, Error, TEXT("%i"), Health);
-
-		if (Health <= 0)
-		{
-			bAlive = false;
-
-			GetComponentOwner()->GetInventoryComponent()->OnCharacterDestroyed();
-
-			GetWorld()->
-				GetAuthGameMode<ACPP_BaseGameMode>()->
-				CharacterDiedDelegate.
-				Broadcast(GetOwner<ACPP_BaseCharacter>()->GetController());
-		}
-
-		return true;
-	}
-
-	return false;
+	return Health;
 }

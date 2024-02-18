@@ -18,18 +18,23 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "PlayerHUD | Widgets")
 	inline class UCPP_MainUIWidget* GetMainUIWidget() const;
 
+	virtual void AddKillFeedMessage(const FString& KillerName, const FString& VictimName, UTexture2D* DeathCauserUITexture) override;
+
 protected:
 	virtual void CreateMainUIWidget();
 
 	virtual void DestroyMainUIWidget();
 
-	virtual void OnPlayerCharacterReady();
+	virtual void OnPlayerCharacterReady() override;
 
-	virtual void OnPlayerCharacterDead();
+	virtual void OnPlayerCharacterDead() override;
 
 protected:
 	class UCPP_MainUIWidget* MainUIWidget;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerHUD | Widgets | Classes")
 	TSubclassOf<class UCPP_MainUIWidget> MainUIWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "PlayerHUD | Widgets | Classes")
+	TSubclassOf<class UCPP_KillFeedMessageWidget> KillFeedMessageWidgetClass;
 };

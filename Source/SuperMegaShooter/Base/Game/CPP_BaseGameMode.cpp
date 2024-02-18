@@ -6,6 +6,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "GameFramework/PlayerStart.h"
 #include "Player/CPP_PlayerCharacter.h"
+#include "Base/UI/CPP_BaseHUD.h"
 
 
 ACPP_BaseGameMode::ACPP_BaseGameMode()
@@ -92,3 +93,4 @@ void ACPP_BaseGameMode::RespawnCharacter(AController* Controller)
 		}
 	}
 }
+

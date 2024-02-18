@@ -77,14 +77,31 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void PlayUsingWeaponEffects();
 
-	virtual void PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType) {}
+	virtual void PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSoundType);
 
 	virtual void PlayUsingWeaponEffects_Implementation() {}
 
-	virtual void PlayWeaponSound(USoundBase* Sound, EWeaponSoundType SoundType) {}
+	virtual void PlayWeaponSound(USoundBase* Sound);
 
 	UFUNCTION()
 	virtual void UnlockWeapon();
+
+
+	inline FName GetSoundTypeName(EWeaponSoundType SoundType)
+	{
+		switch (SoundType)
+		{
+		case EWeaponSoundType::WST_Using:	  return FName("Using");	 break;
+		case EWeaponSoundType::WST_Preparing: return FName("Preparing"); break;
+		case EWeaponSoundType::WST_Reloading: return FName("Reloading"); break;
+		}
+		return FName("Invalid type");
+	}
+
+	UFUNCTION(NetMulticast, Reliable)
+	void StopPlayingAudioComponents();
+
+	virtual void StopPlayingAudioComponents_Implementation();
 
 public:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Replicated, Category = "Weapon | Settings")
@@ -95,6 +112,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings")
 	UStaticMesh* WeaponStaticMeshPtr;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
+	TMap<FName, USoundBase*> WeaponSounds;
 
 protected:
 	UPROPERTY(Replicated, ReplicatedUsing = OnWeaponOwnerChanged)
@@ -139,9 +159,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Effects")
 	UParticleSystem* UsingParticleSystemTemplate;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
-	USoundBase* UsingSound;
+	UPROPERTY()
+	UAudioComponent* ClientAudioComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Weapon | Settings | Sound")
-	USoundBase* PreparingSound;
+	UPROPERTY()
+	UAudioComponent* OthersAudioComponent;
 };
