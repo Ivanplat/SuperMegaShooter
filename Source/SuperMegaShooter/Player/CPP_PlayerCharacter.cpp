@@ -6,6 +6,7 @@
 #include "Player/ActorComponents/CPP_PlayerInventoryComponent.h"
 #include "Actors/Weapons/CPP_Weapon.h"
 #include "CPP_PlayerController.h"
+#include "Base/UI/CPP_BaseHUD.h"
 
 ACPP_PlayerCharacter::ACPP_PlayerCharacter()
 {
@@ -41,6 +42,8 @@ void ACPP_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindAction(FName("SelectMeleeWeapon"), IE_Pressed, this, &ACPP_PlayerCharacter::SelectMeleeWeapon);
 	PlayerInputComponent->BindAction(FName("ScrollUp"), IE_Pressed, this, &ACPP_PlayerCharacter::ScrollUp);
 	PlayerInputComponent->BindAction(FName("ScrollDown"), IE_Pressed, this, &ACPP_PlayerCharacter::ScrollDown);
+	PlayerInputComponent->BindAction(FName("Stats"), IE_Pressed, this, &ACPP_PlayerCharacter::ShowTabStats);
+	PlayerInputComponent->BindAction(FName("Stats"), IE_Released, this, &ACPP_PlayerCharacter::HideTabStats);
 }
 
 void ACPP_PlayerCharacter::MoveForward(float Axis)
@@ -120,6 +123,22 @@ void ACPP_PlayerCharacter::ScrollDown()
 		}
 
 		GetInventoryComponent()->SelectWeaponByWeaponType(prevWeaponType);
+	}
+}
+
+void ACPP_PlayerCharacter::ShowTabStats()
+{
+	if (ACPP_BaseHUD* hud = GetController<ACPP_PlayerController>()->GetHUD<ACPP_BaseHUD>())
+	{
+		hud->CreateTabStatsWidget();
+	}
+}
+
+void ACPP_PlayerCharacter::HideTabStats()
+{
+	if (ACPP_BaseHUD* hud = GetController<ACPP_PlayerController>()->GetHUD<ACPP_BaseHUD>())
+	{
+		hud->DestroyTabStatsWidget();
 	}
 }
 

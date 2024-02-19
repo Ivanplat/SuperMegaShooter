@@ -34,6 +34,10 @@ protected:
 
 	virtual void ScrollDown();
 
+	virtual void ShowTabStats();
+
+	virtual void HideTabStats();
+
 	UFUNCTION(Server, Reliable)
 	void ServerUseWeapon();
 

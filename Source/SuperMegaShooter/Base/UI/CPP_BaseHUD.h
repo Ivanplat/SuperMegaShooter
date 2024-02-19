@@ -14,6 +14,10 @@ class SUPERMEGASHOOTER_API ACPP_BaseHUD : public AHUD
 public:
 	virtual void AddKillFeedMessage(const FString& KillerName, const FString& VictimName, UTexture2D* DeathCauserUITexture) {}
 
+	virtual void CreateTabStatsWidget();
+
+	virtual void DestroyTabStatsWidget();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -22,4 +26,10 @@ protected:
 
 	UFUNCTION()
 	virtual void OnPlayerCharacterDead() {}
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Widgets | Classes")
+	TSubclassOf<class UCPP_TabStatsWidget> TabStatsWidgetClassPtr;
+
+	class UCPP_TabStatsWidget* TabStatsWidget;
 };

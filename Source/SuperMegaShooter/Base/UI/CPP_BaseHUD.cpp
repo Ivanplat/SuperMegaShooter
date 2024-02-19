@@ -9,7 +9,30 @@
 #include "Actors/Weapons/CPP_Weapon.h"
 #include "UI/Common/KillFeed/CPP_KillFeedMessageWidget.h"
 #include "UI/Common/KillFeed/CPP_KillFeedWidget.h"
+#include "UI/Common/TabStats/CPP_TabStatsWidget.h"
 
+
+void ACPP_BaseHUD::CreateTabStatsWidget()
+{
+	if (!TabStatsWidget && TabStatsWidgetClassPtr)
+	{
+		TabStatsWidget = CreateWidget<UCPP_TabStatsWidget>(GetOwningPlayerController(), TabStatsWidgetClassPtr);
+
+		if (TabStatsWidget)
+		{
+			TabStatsWidget->AddToViewport();
+		}
+	}
+}
+
+void ACPP_BaseHUD::DestroyTabStatsWidget()
+{
+	if (TabStatsWidget)
+	{
+		TabStatsWidget->RemoveFromParent();
+		TabStatsWidget = nullptr;
+	}
+}
 
 void ACPP_BaseHUD::BeginPlay()
 {
