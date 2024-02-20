@@ -89,3 +89,23 @@ enum class EWeaponSoundType : uint8
 	WST_Preparing  UMETA(DisplayName = "Preparing"),
 	WST_Reloading  UMETA(DisplayName = "Reloading")
 };
+
+enum class EWeaponRecoilType : uint8
+{
+	WRT_Up    = 0b0001,
+	WRT_Right = 0b0010,
+	WRT_Down  = 0b0100,
+	WRT_Left  = 0b1000
+};
+
+USTRUCT(BlueprintType)
+struct FFireWeaponRecoilInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Recoil Info")
+	float Force = 0.35f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Recoil Info")
+	uint8 RecoilType = 0;
+};

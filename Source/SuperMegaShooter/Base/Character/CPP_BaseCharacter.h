@@ -35,6 +35,8 @@ protected:
 
 	virtual void MulticastStopPlayCharacterWeaponMontage_Implementation(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float BlendTime = 1.0f);
 
+	virtual void ClientAddRecoil_Implementation(const FFireWeaponRecoilInfo& RecoilInfo);
+
 	virtual void ServerReloadWeapon_Implementation();
 
 	virtual void StartCrouch();
@@ -92,6 +94,10 @@ public:
 
 	UFUNCTION(NetMulticast, Reliable)
 	void MulticastStopPlayCharacterWeaponMontage(EWeaponId WeaponId, EWeaponAnimationType AnimationType, float BlendTime = 1.0f);
+
+
+	UFUNCTION(Client, Reliable)
+	void ClientAddRecoil(const FFireWeaponRecoilInfo& RecoilInfo);
 
 	template<class T>
 	inline T* GetHealthComponent() const

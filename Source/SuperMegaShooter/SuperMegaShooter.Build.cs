@@ -24,5 +24,7 @@ public class SuperMegaShooter : ModuleRules
 		});
 
 		PublicIncludePaths.Add(ModuleDirectory);
-	}
+
+        DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
+    }
 }

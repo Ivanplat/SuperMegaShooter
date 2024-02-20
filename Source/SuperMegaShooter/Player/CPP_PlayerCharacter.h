@@ -6,6 +6,7 @@
 #include "Base/Character/CPP_BaseCharacter.h"
 #include "CPP_PlayerCharacter.generated.h"
 
+
 UCLASS()
 class SUPERMEGASHOOTER_API ACPP_PlayerCharacter : public ACPP_BaseCharacter
 {

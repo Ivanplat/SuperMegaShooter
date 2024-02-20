@@ -121,6 +121,29 @@ void ACPP_BaseCharacter::MulticastStopPlayCharacterWeaponMontage_Implementation(
 	}
 }
 
+void ACPP_BaseCharacter::ClientAddRecoil_Implementation(const FFireWeaponRecoilInfo& RecoilInfo)
+{
+	const float force = RecoilInfo.Force;
+	uint8 recoilType = RecoilInfo.RecoilType;
+
+	if (recoilType & static_cast<uint8>(EWeaponRecoilType::WRT_Up))
+	{
+		AddControllerPitchInput(-force);
+	}
+	if (recoilType & static_cast<uint8>(EWeaponRecoilType::WRT_Down))
+	{
+		AddControllerPitchInput(force);
+	}
+	if (recoilType & static_cast<uint8>(EWeaponRecoilType::WRT_Left))
+	{
+		AddControllerYawInput(-force);
+	}
+	if (recoilType & static_cast<uint8>(EWeaponRecoilType::WRT_Right))
+	{
+		AddControllerYawInput(force);
+	}
+}
+
 void ACPP_BaseCharacter::ServerReloadWeapon_Implementation()
 {
 	if (ACPP_FireWeapon* fireWeapon = Cast<ACPP_FireWeapon>(GetInventoryComponent()->GetSelectedWeapon()))

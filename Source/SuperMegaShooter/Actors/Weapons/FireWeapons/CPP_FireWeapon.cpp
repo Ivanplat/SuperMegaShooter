@@ -22,6 +22,8 @@ ACPP_FireWeapon::ACPP_FireWeapon()
 		(
 			FName("Reloading"), static_cast<USoundBase*>(nullptr)
 		));
+
+	RecoilReseterTimerDelegate.BindUFunction(this, FName("ResetRecoil"));
 }
 
 void ACPP_FireWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -45,6 +47,7 @@ void ACPP_FireWeapon::StopUsingWeapon()
 	ACPP_Weapon::StopUsingWeapon();
 
 	GetWorld()->GetTimerManager().ClearTimer(AutoFireTimeHandler);
+	GetWorld()->GetTimerManager().SetTimer(RecoilReseterTimerHandler, RecoilReseterTimerDelegate, 0.5f, true, 0.5f);
 }
 
 bool ACPP_FireWeapon::TryUseWeapon()
@@ -80,7 +83,7 @@ void ACPP_FireWeapon::Fire()
 	start = WeaponOwner->GetFPCamera()->GetComponentLocation();
 	end = start + rotator.Vector() * 10000.0f;
 
-	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 2.0f, (uint8)0U, 0.5f);
+	//DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 2.0f, (uint8)0U, 0.5f);
 
 	if (GetWorld()->LineTraceSingleByChannel(hitResult, start, end, ECC_Visibility, params))
 	{
@@ -99,8 +102,14 @@ void ACPP_FireWeapon::Fire()
 		}
 	}
 
+	if (RecoilReseterTimerHandler.IsValid() && GetWorld()->GetTimerManager().IsTimerActive(RecoilReseterTimerHandler))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(RecoilReseterTimerHandler);
+	}
+
 	PlayWeaponSoundByType(EWeaponSoundType::WST_Using);
 	PlayUsingWeaponEffects();
+	AddRecoil();
 
 	PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Using);
 	WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Using, FireDelay);
@@ -131,6 +140,14 @@ void ACPP_FireWeapon::DecreaseAmmo()
 	if (CurrentAmmo == 0)
 	{
 		StopUsingWeapon();
+	}
+}
+
+void ACPP_FireWeapon::AddRecoil()
+{
+	if (LastRecoilIndex < FireWeaponRecoil.Num() - 1)
+	{
+		WeaponOwner->ClientAddRecoil(FireWeaponRecoil[LastRecoilIndex++]);
 	}
 }
 
@@ -218,6 +235,13 @@ void ACPP_FireWeapon::EndReloading()
 	}
 
 	bReloading = false;
+
+	if (RecoilReseterTimerHandler.IsValid() && GetWorld()->GetTimerManager().IsTimerActive(RecoilReseterTimerHandler))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(RecoilReseterTimerHandler);
+	}
+
+	LastRecoilIndex = 0;
 }
 
 bool ACPP_FireWeapon::IsNeededToReload() const
@@ -232,4 +256,15 @@ void ACPP_FireWeapon::PlayUsingWeaponEffects_Implementation()
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), UsingParticleSystemTemplate, GunFirePoint->GetComponentTransform());
 	}
+}
+
+void ACPP_FireWeapon::ResetRecoil()
+{
+	if (bWeaponInUse || LastRecoilIndex == 0)
+	{
+		GetWorld()->GetTimerManager().ClearTimer(RecoilReseterTimerHandler);
+		return;
+	}
+
+	LastRecoilIndex /= 2;
 }

@@ -46,6 +46,8 @@ protected:
 
 	virtual void DecreaseAmmo();
 
+	virtual void AddRecoil();
+
 	virtual void PlayWeaponAnimationMulticast_Implementation(EWeaponAnimationType AnimationType) override;
 
 	virtual bool IsAbleToReload() const;
@@ -56,6 +58,9 @@ protected:
 	virtual bool IsNeededToReload() const;
 
 	virtual void PlayUsingWeaponEffects_Implementation() override;
+
+	UFUNCTION()
+	virtual void ResetRecoil();
 
 
 protected:
@@ -97,4 +102,15 @@ protected:
 
 	UPROPERTY()
 	UAudioComponent* ReloadingAudioComponent;
+
+	UPROPERTY()
+	FTimerHandle RecoilReseterTimerHandler;
+
+	FTimerDelegate RecoilReseterTimerDelegate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings | Recoil")
+	TArray<FFireWeaponRecoilInfo> FireWeaponRecoil;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Settings | Recoil")
+	int32 LastRecoilIndex = 0;
 };
