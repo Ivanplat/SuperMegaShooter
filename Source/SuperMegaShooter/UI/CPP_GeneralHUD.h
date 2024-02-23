@@ -16,7 +16,7 @@ class SUPERMEGASHOOTER_API ACPP_GeneralHUD : public ACPP_BaseHUD
 	
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "PlayerHUD | Widgets")
-	inline class UCPP_MainUIWidget* GetMainUIWidget() const;
+	class UCPP_MainUIWidget* GetMainUIWidget() const;
 
 	virtual void AddKillFeedMessage(const FString& KillerName, const FString& VictimName, UTexture2D* DeathCauserUITexture) override;
 
@@ -30,7 +30,7 @@ protected:
 	virtual void OnPlayerCharacterDead() override;
 
 protected:
-	class UCPP_MainUIWidget* MainUIWidget;
+	class UCPP_MainUIWidget* MainUIWidget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "PlayerHUD | Widgets | Classes")
 	TSubclassOf<class UCPP_MainUIWidget> MainUIWidgetClass;

@@ -34,6 +34,14 @@ FSlateBrush UCPP_WeaponSlotWidget::UpdateBackgroundColor()
 {
 	FSlateBrush sb;
 
+	if (!GetWeapon())
+	{
+		FLinearColor lc = FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		sb.TintColor = lc;
+
+		return sb;
+	}
+
 	if (ACPP_PlayerCharacter* playerCharacter = GetOwningPlayerPawn<ACPP_PlayerCharacter>())
 	{
 		UCPP_PlayerInventoryComponent* inventoryComponent = playerCharacter->GetInventoryComponent<UCPP_PlayerInventoryComponent>();
@@ -71,6 +79,11 @@ FSlateBrush UCPP_WeaponSlotWidget::UpdateWeaponImage()
 	{
 		sb.SetResourceObject(weapon->WeaponInfo.WeaponUITexture);
 		sb.TintColor = FLinearColor::White;
+	}
+	else
+	{
+		FLinearColor lc = FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		sb.TintColor = lc;
 	}
 
 	return sb;

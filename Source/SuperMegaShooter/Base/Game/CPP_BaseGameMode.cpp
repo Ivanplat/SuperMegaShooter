@@ -11,11 +11,20 @@
 
 ACPP_BaseGameMode::ACPP_BaseGameMode()
 {
+	PlayerOrAiJoinedDelegate.AddDynamic(this, &ACPP_BaseGameMode::OnPlayerOrAiJoined);
 	CharacterDiedDelegate.AddDynamic(this, &ACPP_BaseGameMode::OnCharacterDied);
 }
 
 void ACPP_BaseGameMode::OnPlayerOrAiJoined(AController* Controller)
 {
+
+	if (!Controller) return;
+
+	if (StartPoints.Num() == 0)
+	{
+		StartPoints = GetAllStartPoints();
+	}
+
 	const APlayerStart* startPoint = GetRandomStartPoint();
 
 	if (ACPP_BaseCharacter* spawnedCharacter = SpawnPlayerOrAi
@@ -31,6 +40,7 @@ void ACPP_BaseGameMode::OnPlayerOrAiJoined(AController* Controller)
 
 ACPP_BaseCharacter* ACPP_BaseGameMode::SpawnPlayerOrAi(AController* Controller, const FTransform& SpawnTransorm, bool bPlayer)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, TEXT("Spaned"));
 	return bPlayer ? 
 		GetWorld()->SpawnActor<ACPP_BaseCharacter>(PlayerCharacterClass, SpawnTransorm) : 
 		GetWorld()->SpawnActor<ACPP_BaseCharacter>(AiCharacterClass, SpawnTransorm);
@@ -54,9 +64,10 @@ void ACPP_BaseGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	StartPoints = GetAllStartPoints();
-
-	PlayerOrAiJoinedDelegate.AddDynamic(this, &ACPP_BaseGameMode::OnPlayerOrAiJoined);
+	if (StartPoints.Num() == 0)
+	{
+		StartPoints = GetAllStartPoints();
+	}
 }
 
 void ACPP_BaseGameMode::MulticastCallGameStartedDelegate_Implementation()

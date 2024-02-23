@@ -215,7 +215,7 @@ void ACPP_BaseCharacter::OnCharacterTakePointDamage
 {
 	if (HasAuthority())
 	{
-		GetHealthComponent()->ApplyDamage(InstigatedBy, DamageCauser);
+		GetHealthComponent()->ApplyDamage(InstigatedBy, DamageCauser, BoneName);
 	}
 }
 

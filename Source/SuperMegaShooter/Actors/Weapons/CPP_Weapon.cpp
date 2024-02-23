@@ -122,42 +122,51 @@ void ACPP_Weapon::PlayWeaponSoundByType_Implementation(EWeaponSoundType WeaponSo
 
 	if (soundPtr)
 	{
-		PlayWeaponSound(*soundPtr);
+		PlayWeaponSound(*soundPtr, WeaponSoundType != EWeaponSoundType::WST_Using);
 	}
 }
 
-void ACPP_Weapon::PlayWeaponSound(USoundBase* Sound)
+void ACPP_Weapon::PlayWeaponSound(USoundBase* Sound, bool bIsStopable)
 {
-	UE_LOG(LogTemp, Error, TEXT("0"));
 	if (!Sound) { return; }
 
 	if (WeaponOwner->IsLocallyControlled())
 	{
-		UE_LOG(LogTemp, Error, TEXT("1"));
-		if (!ClientAudioComponent)
+		if (bIsStopable)
 		{
-			UE_LOG(LogTemp, Error, TEXT("2"));
-			ClientAudioComponent = UGameplayStatics::CreateSound2D(this, Sound);
-			ClientAudioComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
-		}
+			if (!ClientAudioComponent)
+			{
+				ClientAudioComponent = UGameplayStatics::CreateSound2D(this, Sound);
+				ClientAudioComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+			}
 
-		if (ClientAudioComponent->Sound != Sound)
+			if (ClientAudioComponent->Sound != Sound)
+			{
+				ClientAudioComponent->SetSound(Sound);
+			}
+
+			ClientAudioComponent->Play();
+		}
+		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("3"));
-			ClientAudioComponent->SetSound(Sound);
+			UGameplayStatics::PlaySound2D(this, Sound);
 		}
-
-		UE_LOG(LogTemp, Error, TEXT("4"));
-		ClientAudioComponent->Play();
 	}
 	else
 	{
-		if (OthersAudioComponent->Sound != Sound)
+		if (bIsStopable)
 		{
-			OthersAudioComponent->SetSound(Sound);
-		}
+			if (OthersAudioComponent->Sound != Sound)
+			{
+				OthersAudioComponent->SetSound(Sound);
+			}
 
-		OthersAudioComponent->Play();
+			OthersAudioComponent->Play();
+		}
+		else
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, Sound, GetActorLocation());
+		}
 	}
 }
 

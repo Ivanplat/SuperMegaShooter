@@ -10,13 +10,21 @@
 #include "Base/Game/CPP_BaseGameMode.h"
 #include "Base/Game/CPP_BaseGameMode.h"
 
-bool UCPP_PlayerHealthComponent::ApplyDamage(AActor* Instigator, AActor* DamageCauser)
+bool UCPP_PlayerHealthComponent::ApplyDamage(AActor* Instigator, AActor* DamageCauser, const FName& HittedBoneName)
 {
 	if (!bAlive) return false;
 
 	if (ACPP_Weapon* weapon = Cast<ACPP_Weapon>(DamageCauser))
 	{
-		Health -= weapon->GetWeaponDamage();
+
+		int32 baseDamge = weapon->GetWeaponDamage();
+
+		if (HittedBoneName != NAME_None)
+		{
+			baseDamge = RecalculateDamage(baseDamge, HittedBoneName);
+		}
+
+		Health -= baseDamge;
 
 		if (Health <= 0)
 		{

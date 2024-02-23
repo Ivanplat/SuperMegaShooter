@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Actors/Weapons/WeaponSettings.h"
 #include "CPP_BaseGameMode.generated.h"
 
 UCLASS()
@@ -55,6 +56,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Start Game")
 	FGameOver GameOverDelegate;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Game Settings")
+	EGameModeAmmoSettings GameModeAmmoSettings;
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Start Game | Spawn")

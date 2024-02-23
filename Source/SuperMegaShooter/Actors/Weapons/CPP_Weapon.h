@@ -81,7 +81,7 @@ protected:
 
 	virtual void PlayUsingWeaponEffects_Implementation() {}
 
-	virtual void PlayWeaponSound(USoundBase* Sound);
+	virtual void PlayWeaponSound(USoundBase* Sound, bool bIsStopable = false);
 
 	UFUNCTION()
 	virtual void UnlockWeapon();

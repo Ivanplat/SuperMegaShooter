@@ -15,7 +15,7 @@ ACPP_PlayerController::ACPP_PlayerController()
 {
 	PlayerCharacterReadyDelegate.AddDynamic(this, &ACPP_PlayerController::OnPlayerCharacterReady);
 	PlayerCharacterDeadDelegate.AddDynamic(this, &ACPP_PlayerController::OnPlayerCharacterDead);
-	PlayerDeadDelegate.AddDynamic(this, &ACPP_PlayerController::OnPlayerDead);
+	PlayerDeadDelegate.AddDynamic(this, &ACPP_PlayerController::OnPlayerDead); 
 }
 
 void ACPP_PlayerController::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

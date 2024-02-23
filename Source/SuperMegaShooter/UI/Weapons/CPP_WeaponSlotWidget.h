@@ -29,6 +29,7 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	FSlateBrush UpdateWeaponImage();
 
+
 public:
 	EWeaponType WeaponType;
 

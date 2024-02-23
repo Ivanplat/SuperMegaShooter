@@ -16,21 +16,21 @@ class SUPERMEGASHOOTER_API UCPP_MainUIWidget : public UCPP_BaseWidget
 
 public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Base Widget | Widgets")
-	inline class UCPP_KillFeedWidget* GetKillFeedWidget() const;
+	class UCPP_KillFeedWidget* GetKillFeedWidget() const;
 	
 protected:
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
 	class UImage* I_Crosshair;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
-	class UCPP_WeaponPanelWidget* WeaponPanelWidget;
+	class UCPP_WeaponPanelWidget* WeaponPanelWidget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
-	class UCPP_HealthStatsWidget* HealthStatsWidget;
+	class UCPP_HealthStatsWidget* HealthStatsWidget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
-	class UCPP_KillFeedWidget* KillFeedWidget;
+	class UCPP_KillFeedWidget* KillFeedWidget = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, meta = (BindWidget))
-	class UCPP_TimeWidget* TimeWidget;
+	class UCPP_TimeWidget* TimeWidget = nullptr;
 };

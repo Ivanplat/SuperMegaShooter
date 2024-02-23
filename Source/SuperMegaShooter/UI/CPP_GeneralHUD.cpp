@@ -8,7 +8,7 @@
 #include "GameFramework/PlayerState.h"
 #include "Actors/Weapons/CPP_Weapon.h"
 
-inline UCPP_MainUIWidget* ACPP_GeneralHUD::GetMainUIWidget() const
+UCPP_MainUIWidget* ACPP_GeneralHUD::GetMainUIWidget() const
 {
 	return MainUIWidget;
 }

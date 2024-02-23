@@ -12,5 +12,5 @@ class SUPERMEGASHOOTER_API UCPP_PlayerHealthComponent : public UCPP_BaseHealthCo
 	GENERATED_BODY()
 	
 public:
-	virtual bool ApplyDamage(AActor* Instigator, AActor* DamageCauser) override;
+	virtual bool ApplyDamage(AActor* Instigator, AActor* DamageCauser, const FName& HittedBoneName = NAME_None) override;
 };

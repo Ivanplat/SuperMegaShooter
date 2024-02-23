@@ -9,6 +9,7 @@
 #include "DrawDebugHelpers.h"
 #include "Camera/CameraComponent.h"
 #include "Components/AudioComponent.h"
+#include "Base/Game/CPP_BaseGameMode.h"
 
 ACPP_FireWeapon::ACPP_FireWeapon()
 {
@@ -114,7 +115,14 @@ void ACPP_FireWeapon::Fire()
 	PlayWeaponAnimationMulticast(EWeaponAnimationType::WAnT_Using);
 	WeaponOwner->MulticastPlayCharaterWeaponMontage(WeaponId, EWeaponAnimationType::WAnT_Using, FireDelay);
 
-	DecreaseAmmo();
+
+	if (ACPP_BaseGameMode* gameMode = GetWorld()->GetAuthGameMode<ACPP_BaseGameMode>())
+	{
+		if (gameMode->GameModeAmmoSettings != EGameModeAmmoSettings::GMAS_InfinityAmmo1)
+		{
+			DecreaseAmmo();
+		}
+	}
 
 	if (bAbleToAutoFire && CurrentAmmo > 0)
 	{
@@ -221,6 +229,27 @@ inline int32 ACPP_FireWeapon::GetCurrentAmmoInBack() const
 
 void ACPP_FireWeapon::EndReloading()
 {
+	if (ACPP_BaseGameMode* gameMode = GetWorld()->GetAuthGameMode<ACPP_BaseGameMode>())
+	{
+		if (gameMode->GameModeAmmoSettings == EGameModeAmmoSettings::GMAS_InfinityAmmo2)
+		{
+			CurrentAmmo = MaxCurrentAmmo;
+
+
+			bReloading = false;
+
+			if (RecoilReseterTimerHandler.IsValid() && GetWorld()->GetTimerManager().IsTimerActive(RecoilReseterTimerHandler))
+			{
+				GetWorld()->GetTimerManager().ClearTimer(RecoilReseterTimerHandler);
+			}
+
+			LastRecoilIndex = 0;
+
+			return;
+		}
+	}
+
+
 	const int32 ammoNeededToReload = MaxCurrentAmmo - CurrentAmmo;
 	
 	if (ammoNeededToReload <= CurrentAmmoInBack)

@@ -8,7 +8,7 @@
 #include "UI/Common/KillFeed/CPP_KillFeedWidget.h"
 #include "UI/Common/Time/CPP_TimeWidget.h"
 
-inline UCPP_KillFeedWidget* UCPP_MainUIWidget::GetKillFeedWidget() const
+UCPP_KillFeedWidget* UCPP_MainUIWidget::GetKillFeedWidget() const
 {
 	return KillFeedWidget;
 }

@@ -15,11 +15,13 @@ class SUPERMEGASHOOTER_API UCPP_BaseHealthComponent : public UCPP_BaseCharacterC
 protected:
 	virtual void BeginPlay() override;
 
+	virtual int32 RecalculateDamage(int32 BaseDamage, const FName& HittedBoneName);
+
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION(BlueprintCallable, Category = "Health Component")
-	virtual bool ApplyDamage(AActor* Instigator, AActor* DamageCauser) { return true; }
+	virtual bool ApplyDamage(AActor* Instigator, AActor* DamageCauser, const FName& HittedBoneName = NAME_None) { return true; }
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Health Component")
 	virtual inline int32 GetHealth() const;

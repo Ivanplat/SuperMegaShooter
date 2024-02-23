@@ -109,3 +109,11 @@ struct FFireWeaponRecoilInfo
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Fire Weapon Recoil Info")
 	uint8 RecoilType = 0;
 };
+
+UENUM(BlueprintType)
+enum class EGameModeAmmoSettings
+{
+	GMAS_Default	   UMETA(DisplayName = "Default"),
+	GMAS_InfinityAmmo1 UMETA(DisplayName = "Infinity Ammo 1"),
+	GMAS_InfinityAmmo2 UMETA(DisplayName = "Infinity Ammo 2")
+};

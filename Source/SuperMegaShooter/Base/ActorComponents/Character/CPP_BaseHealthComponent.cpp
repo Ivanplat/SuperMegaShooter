@@ -17,6 +17,16 @@ void UCPP_BaseHealthComponent::BeginPlay()
 	UCPP_BaseCharacterComponent::BeginPlay();
 }
 
+int32 UCPP_BaseHealthComponent::RecalculateDamage(int32 BaseDamage, const FName& HittedBoneName)
+{
+	if (HittedBoneName == FName("head"))
+	{
+		BaseDamage *= 4;
+	}
+
+	return BaseDamage;
+}
+
 void UCPP_BaseHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UCPP_BaseCharacterComponent::GetLifetimeReplicatedProps(OutLifetimeProps);
